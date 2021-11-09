@@ -10,6 +10,7 @@ delete from ADRESSES;
 delete from COMMUNES;
 delete from SEPARER;
 
+commit ;
 
 -- ============================================================
 --    creation des donnees
