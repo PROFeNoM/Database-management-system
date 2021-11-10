@@ -1,6 +1,8 @@
 -- ============================================================
 --    suppression des donnees
 -- ============================================================
+use VELO;
+
 delete from VELOS;
 
 delete from STATIONS;
@@ -67,7 +69,7 @@ insert into VILLES values (33550, 'Villenave-d''Ornon', 33140);
 
 -- VELOS
 
-insert into VELOS values (1, '12139990003', '2019-12-03', 'Gitane', 57, 83, 0, 0);
+-- insert into VELOS values (1, '12139990003', '2019-12-03', 'Gitane', 57, 83, 0, 0);
 
 -- EMPRUNTS
 

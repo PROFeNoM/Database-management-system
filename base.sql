@@ -72,7 +72,7 @@ create table EMPRUNTS
 create table ETATS
 (
     NUMERO_ETAT INT      not null,
-    ETAT        CHAR(10) not null,
+    ETAT        CHAR(20) not null,
     constraint PK_ETATS primary key (NUMERO_ETAT)
 );
 
