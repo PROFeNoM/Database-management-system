@@ -30,7 +30,7 @@ insert into ETATS values (2, 'etat correct');
 -- VILLES
 
 insert into VILLES values (33063, 'Bordeaux', 33000);
-insert into VILLES values (33003, 'Anbarès-et-Lagrave', 33440);
+insert into VILLES values (33003, 'Ambarès-et-Lagrave', 33440);
 insert into VILLES values (33004, 'Ambès', 33810);
 insert into VILLES values (33013, 'Artigues-près-Bordeaux', 33370);
 insert into VILLES values (33032, 'Bassens', 33530);
