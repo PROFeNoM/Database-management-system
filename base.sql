@@ -30,9 +30,10 @@ create table VELOS
 -- ============================================================
 create table STATIONS
 (
-    NUMERO_STATION INT not null,
-    NOMBRE_BORNES  INT not null,
-    NUMERO_ADRESSE INT not null,
+    NUMERO_STATION INT       not null,
+    NOMBRE_BORNES  INT       not null,
+    ADRESSE        CHAR(255) not null,
+    NUMERO_VILLE INT       not null,
     constraint PK_STATIONS primary key (NUMERO_STATION)
 );
 
@@ -41,10 +42,11 @@ create table STATIONS
 -- ============================================================
 create table ADHERENTS
 (
-    NUMERO_ADHERENT INT      not null,
-    NOM_ADHERENT    CHAR(42) not null,
+    NUMERO_ADHERENT INT       not null,
+    NOM_ADHERENT    CHAR(42)  not null,
     PRENOM_ADHERENT CHAR(42),
-    NUMERO_ADRESSE  INT      not null,
+    ADRESSE         CHAR(255) not null,
+    NUMERO_VILLE  INT       not null,
     constraint PK_ADHERENTS primary key (NUMERO_ADHERENT)
 );
 
@@ -75,25 +77,14 @@ create table ETATS
 );
 
 -- ============================================================
---   Table : ADRESSES
+--   Table : VILLES
 -- ============================================================
-create table ADRESSES
-(
-    NUMERO_ADRESSE INT       not null,
-    LIEU           CHAR(255) not null,
-    NUMERO_COMMUNE INT       not null,
-    constraint PK_ADRESSES primary key (NUMERO_ADRESSE)
-);
-
--- ============================================================
---   Table : COMMUNES
--- ============================================================
-create table COMMUNES
+create table VILLES
 (
     NUMERO_INSEE INT       not null,
-    NOM_COMMUNE  CHAR(255) not null,
+    NOM_VILLE  CHAR(255) not null,
     CODE_POSTAL  INT       not null,
-    constraint PK_COMMUNES primary key (NUMERO_INSEE)
+    constraint PK_VILLES primary key (NUMERO_INSEE)
 );
 
 -- ============================================================
@@ -104,7 +95,7 @@ create table SEPARER
     NUMERO_STATION_1 INT not null,
     NUMERO_STATION_2 INT not null,
     DISTANCE         INT,
-    constraint PK_COMMUNES primary key (NUMERO_STATION_1, NUMERO_STATION_2)
+    constraint PK_VILLES primary key (NUMERO_STATION_1, NUMERO_STATION_2)
 );
 
 alter table VELOS
@@ -122,16 +113,16 @@ alter table VELOS
             on delete cascade;
 
 alter table STATIONS
-    add constraint FK_ADRESSE_STATION
-        foreign key (NUMERO_ADRESSE)
-            references ADRESSES (NUMERO_ADRESSE)
+    add constraint FK_VILLE_STATION
+        foreign key (NUMERO_VILLE)
+            references VILLES (NUMERO_INSEE)
             on update cascade
             on delete cascade;
 
 alter table ADHERENTS
-    add constraint FK_ADRESSE_ADHERENT
-        foreign key (NUMERO_ADRESSE)
-            references ADRESSES (NUMERO_ADRESSE)
+    add constraint FK_VILLE_ADHERENT
+        foreign key (NUMERO_VILLE)
+            references VILLES (NUMERO_INSEE)
             on update cascade
             on delete cascade;
 
@@ -160,13 +151,6 @@ alter table EMPRUNTS
     add constraint FK_STATION_ARRIVEE_EMPRUNT
         foreign key (NUMERO_STATION_ARRIVEE)
             references STATIONS (NUMERO_STATION)
-            on update cascade
-            on delete cascade;
-
-alter table ADRESSES
-    add constraint FK_COMMUNE_ADRESSE
-        foreign key (NUMERO_COMMUNE)
-            references COMMUNES (NUMERO_INSEE)
             on update cascade
             on delete cascade;
 
