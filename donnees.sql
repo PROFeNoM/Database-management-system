@@ -29,6 +29,8 @@ insert into ETATS values (0, 'parfait etat');
 insert into ETATS values (1, 'tres bon etat');
 insert into ETATS values (2, 'etat correct');
 
+commit;
+
 -- VILLES
 
 insert into VILLES values (33063, 'Bordeaux', 33000);
@@ -45,7 +47,7 @@ insert into VILLES values (33110, 'Caudéran', 33200);
 insert into VILLES values (33119, 'Cenon', 33150);
 insert into VILLES values (33162, 'Eysines', 33320);
 insert into VILLES values (33167, 'Floirac', 33270);
-insert into VILLES values (33192, 'Gradignan',33170);
+insert into VILLES values (33192, 'Gradignan', 33170);
 insert into VILLES values (33069, 'Le Bouscat', 33110);
 insert into VILLES values (33200, 'Le Haillan', 33185);
 insert into VILLES values (33519, 'Le Taillan-Médoc', 33320);
@@ -60,6 +62,8 @@ insert into VILLES values (33449, 'Saint-Médard-en-Jalles', 33160);
 insert into VILLES values (33487, 'Saint-Vincent-de-Paul', 33440);
 insert into VILLES values (33522, 'Talence', 33522);
 insert into VILLES values (33550, 'Villenave-d''Ornon', 33140);
+
+commit;
 
 -- STATIONS
 
@@ -77,3 +81,6 @@ insert into VILLES values (33550, 'Villenave-d''Ornon', 33140);
 -- ============================================================
 --    verification des donnees
 -- ============================================================
+select count(*), '=3 ?', 'ETAT' from ETATS
+union
+select count(*), '=29 ?', 'VILLES' from VILLES;
