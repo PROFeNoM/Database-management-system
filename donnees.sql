@@ -19,9 +19,9 @@ commit;
 
 -- ETATS
 
-insert into ETATS values (0, 'parfait etat');
-insert into ETATS values (1, 'tres bon etat');
-insert into ETATS values (2, 'etat correct');
+insert into ETATS values (1, 'parfait etat');
+insert into ETATS values (2, 'tres bon etat');
+insert into ETATS values (3, 'etat correct');
 
 commit;
 
@@ -86,6 +86,16 @@ commit;
 
 -- ADHERENTS
 
+insert into ADHERENTS values (1, 'Shavershian', 'Aziz', '59 Rue de la Paix', 33096);
+insert into ADHERENTS values (2, 'Diakhaté', 'Issa', '667 Rue Yves Saint Laurent', 33434);
+insert into ADHERENTS values (3, 'Andrieu', 'Nabil', '2 Rue Deux Frères', 33318);
+insert into ADHERENTS values (4, 'Andrieu', 'Tarik', '2B Rue Deux Frères', 33318);
+insert into ADHERENTS values (5, 'Jackson', 'Mickael', '89 Rue des frissons', 33522);
+insert into ADHERENTS values (6, 'Bruce Mathers III', 'Marshall', '1 Rue des Dieux', 33063);
+insert into ADHERENTS values (7, 'Shakur', 'Tupac', '42 Rue Vision', 33449);
+
+commit;
+
 -- SEPARER
 
 -- VELOS
@@ -114,7 +124,14 @@ from
 union
 select
     count(*),
-    '=176 ?',
+    '=20 ?',
     'STATIONS'
 from
-    STATIONS;
+    STATIONS
+union
+select
+    count(*),
+    '=7 ?',
+    'ADHERENTS'
+from
+    ADHERENTS;
