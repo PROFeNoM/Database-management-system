@@ -33,7 +33,7 @@ create table STATIONS
     NUMERO_STATION INT       not null,
     NOMBRE_BORNES  INT       not null,
     ADRESSE        CHAR(255) not null,
-    NUMERO_VILLE INT       not null,
+    NUMERO_VILLE   INT       not null,
     constraint PK_STATIONS primary key (NUMERO_STATION)
 );
 
@@ -46,7 +46,7 @@ create table ADHERENTS
     NOM_ADHERENT    CHAR(42)  not null,
     PRENOM_ADHERENT CHAR(42),
     ADRESSE         CHAR(255) not null,
-    NUMERO_VILLE  INT       not null,
+    NUMERO_VILLE    INT       not null,
     constraint PK_ADHERENTS primary key (NUMERO_ADHERENT)
 );
 
@@ -82,7 +82,7 @@ create table ETATS
 create table VILLES
 (
     NUMERO_INSEE INT       not null,
-    NOM_VILLE  CHAR(255) not null,
+    NOM_VILLE    CHAR(255) not null,
     CODE_POSTAL  INT       not null,
     constraint PK_VILLES primary key (NUMERO_INSEE)
 );
@@ -94,7 +94,7 @@ create table SEPARER
 (
     NUMERO_STATION_1 INT not null,
     NUMERO_STATION_2 INT not null,
-    DISTANCE         INT,
+    DISTANCE         DECIMAL(4, 1),
     constraint PK_VILLES primary key (NUMERO_STATION_1, NUMERO_STATION_2)
 );
 

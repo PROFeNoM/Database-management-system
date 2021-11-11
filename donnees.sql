@@ -64,13 +64,14 @@ commit;
 insert into STATIONS values (1, 33, '3 Rue Claude Bonnier', 33063);
 insert into STATIONS values (2, 20, '37 Place des martyrs de la résistance', 33063);
 insert into STATIONS values (3, 40, '2 Place Gambetta', 33063);
-insert into STATIONS values (4, 12, '1 Rue Pardon', 33004);
+insert into STATIONS values (4, 12, '1 Avenue Pierre Bérégovoy', 33004);
 insert into STATIONS values (5, 19, '22 Boulevard Feydeau', 33013);
 insert into STATIONS values (6, 19, '307 Boulevard J.J. Bosc', 33039);
 insert into STATIONS values (7, 20, '24 Rue de Dehez', 33056);
 insert into STATIONS values (8, 19, '92 Rue Andre Messager', 33075);
 insert into STATIONS values (9, 16, '7 Rue de l''Eglise', 33110);
 insert into STATIONS values (10, 30, '34 Rue Edouard Vaillant', 33119);
+/*
 insert into STATIONS values (11, 16, '3 Avenue de Picot', 33162);
 insert into STATIONS values (12, 20, 'Place Mayensa', 33167);
 insert into STATIONS values (13, 20, 'Place Bernard Roumegoux', 33192);
@@ -81,6 +82,7 @@ insert into STATIONS values (17, 20, 'Pôle d''échanges Buttinière', 33249);
 insert into STATIONS values (18, 18, 'Place Mondésir', 33281);
 insert into STATIONS values (19, 20, '1 Rue de la Gare', 33312);
 insert into STATIONS values (20, 22, '243 Avenue Bougnard', 33318);
+*/
 
 commit;
 
@@ -97,6 +99,62 @@ insert into ADHERENTS values (7, 'Shakur', 'Tupac', '42 Rue Vision', 33449);
 commit;
 
 -- SEPARER
+
+insert into SEPARER values (1, 2, 0.650);
+insert into SEPARER values (1, 3, 0.850);
+insert into SEPARER values (1, 4, 25.0);
+insert into SEPARER values (1, 5, 8.7);
+insert into SEPARER values (1, 6, 5.3);
+insert into SEPARER values (1, 7, 10.3);
+insert into SEPARER values (1, 8, 5.9);
+insert into SEPARER values (1, 9, 3.7);
+insert into SEPARER values (1, 10, 6.2);
+
+insert into SEPARER values (2, 3, 0.7);
+insert into SEPARER values (2, 4, 24.4);
+insert into SEPARER values (2, 5, 8.6);
+insert into SEPARER values (2, 6, 5.6);
+insert into SEPARER values (2, 7, 9.1);
+insert into SEPARER values (2, 8, 5.9);
+insert into SEPARER values (2, 9, 3.0);
+insert into SEPARER values (2, 10, 5.5);
+
+insert into SEPARER values (3, 4, 24.1);
+insert into SEPARER values (3, 5, 8.2);
+insert into SEPARER values (3, 6, 4.9);
+insert into SEPARER values (3, 7, 8.9);
+insert into SEPARER values (3, 8, 5.1);
+insert into SEPARER values (3, 9, 3.4);
+insert into SEPARER values (3, 10, 4.6);
+
+insert into SEPARER values (4, 5, 2.0);
+insert into SEPARER values (4, 6, 6.5);
+insert into SEPARER values (4, 7, 14.2);
+insert into SEPARER values (4, 8, 9.1);
+insert into SEPARER values (4, 9, 10.8);
+insert into SEPARER values (4, 10, 3.9);
+
+insert into SEPARER values (5, 6, 9.1);
+insert into SEPARER values (5, 7, 16.8);
+insert into SEPARER values (5, 8, 10.6);
+insert into SEPARER values (5, 9, 11.9);
+insert into SEPARER values (5, 10, 4.4);
+
+insert into SEPARER values (6, 7, 14.4);
+insert into SEPARER values (6, 8, 9.6);
+insert into SEPARER values (6, 9, 8.0);
+insert into SEPARER values (6, 10, 7.7);
+
+insert into SEPARER values (7, 8, 5.6);
+insert into SEPARER values (7, 9, 8.7);
+insert into SEPARER values (7, 10, 11.7);
+
+insert into SEPARER values (8, 9, 6.6);
+insert into SEPARER values (8, 10, 6.4);
+
+insert into SEPARER values (9, 10, 8.2);
+
+commit;
 
 -- VELOS
 
@@ -134,4 +192,11 @@ select
     '=7 ?',
     'ADHERENTS'
 from
-    ADHERENTS;
+    ADHERENTS
+union
+select
+    count(*),
+    '=45 ?',
+    'SEPARER'
+from
+    SEPARER;
