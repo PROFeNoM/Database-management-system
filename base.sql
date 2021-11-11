@@ -166,3 +166,7 @@ alter table SEPARER
             references STATIONS (NUMERO_STATION)
             on update cascade
             on delete cascade;
+
+create user if not exists 'velo'@'localhost' identified by 'P@ssW0rd';
+grant select, insert, update, delete on VELO.* to 'velo'@'localhost';
+flush privileges;
