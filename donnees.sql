@@ -82,7 +82,6 @@ insert into STATIONS values (18, 18, 'Place Mondésir', 33281);
 insert into STATIONS values (19, 20, '1 Rue de la Gare', 33312);
 insert into STATIONS values (20, 22, '243 Avenue Bougnard', 33318);
 
-
 commit;
 
 -- ADHERENTS
