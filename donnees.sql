@@ -158,10 +158,25 @@ commit;
 
 -- VELOS
 
--- insert into VELOS values (1, '12139990003', '2019-12-03', 'Gitane', 57, 83, 0, 0);
+insert into VELOS values (1, '12139990003', '2020-12-03', 'Gitane', 83, 1, 1);
+insert into VELOS values (2, '12139990004', '2020-12-03', 'Gitane', 99, 2, 1);
+insert into VELOS values (3, '12139990005', '2020-12-03', 'Gitane', 87, 1, 3);
+insert into VELOS values (4, '12139990006', '2020-12-03', 'Gitane', 36, 3, null);
+insert into VELOS values (5, '12139990007', '2020-12-04', 'Gitane', 87, 3, null);
+insert into VELOS values (6, '12139990008', '2020-12-04', 'Gitane', 13, 2, 8);
+insert into VELOS values (7, '12139990009', '2020-12-04', 'Gitane', 24, 2, 9);
+insert into VELOS values (8, '12139990010', '2020-12-04', 'Gitane', 24, 2, 9);
+insert into VELOS values (9, '12139990011', '2020-12-04', 'Gitane', 65, 3, 10);
+insert into VELOS values (10, '12139990012', '2020-12-04', 'Gitane', 76, 1, 10);
+
+commit;
 
 -- EMPRUNTS
 
+insert into EMPRUNTS values (1, '2020-12-05', '12:56:32', '13:23:34', 1, 2, 3, 1);
+insert into EMPRUNTS values (2, '2020-12-05', '23:43:01', null, 5, 3, 4, null);
+
+commit;
 
 -- ============================================================
 --    verification des donnees
@@ -199,4 +214,18 @@ select
     '=45 ?',
     'SEPARER'
 from
-    SEPARER;
+    SEPARER
+union
+select
+    count(*),
+    '=10 ?',
+    'VELOS'
+from
+    VELOS
+union
+select
+    count(*),
+    '=2 ?',
+    'EMPRUNTS'
+from
+    EMPRUNTS;

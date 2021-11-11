@@ -18,7 +18,6 @@ create table VELOS
     REFERENCE              CHAR(42),
     DATE_MISE_EN_SERVICE   DATE,
     MARQUE                 CHAR(42),
-    KILOMETRAGE            INT,
     NIVEAU_CHARGE_BATTERIE INT,
     NUMERO_ETAT            INT not null,
     NUMERO_STATION         INT,
