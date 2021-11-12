@@ -55,13 +55,26 @@ function resultsToTable(mysqli_result $queryResults): string
 }
 
 /**
- * @param $dbConnection mysqli object which represents the connection to a MySQL Server
  * @param $query string query to execute on the database
  * @return string Corresponding table in HTML Code
  */
-function queryToTable(mysqli $dbConnection, string $query): string
+function queryToTable(string $query): string
 {
+    $dbConnection = connectToDb();
+
     $queryResults = mysqli_query($dbConnection, $query);
 
     return resultsToTable($queryResults);
+}
+
+function parameterizedQueryToTable(string $query, string $types, ...$params) {
+    $dbConnection = connectToDb();
+
+    $stmt = mysqli_prepare($dbConnection, $query);
+    if (!mysqli_stmt_bind_param($stmt, $types, ...$params))
+        print "<h3>problem binding query...</h3>\n";
+    mysqli_stmt_execute($stmt);
+    $queryResults = mysqli_stmt_get_result($stmt);
+
+    print resultsToTable($queryResults);
 }

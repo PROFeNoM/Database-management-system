@@ -12,32 +12,26 @@
 Velos en cours d'utilisation (Test requete 'statique')
 
 <?php
-$dbConnection = connectToDb();
-
 $query = file_get_contents(__DIR__ . '/../requetes/velosEnCoursUtilisation.sql');
-
-print queryToTable($dbConnection, $query);
+print queryToTable($query);
 ?>
 
-Velos à la station 10 (Test requete 'configurable')
+Velos à la station ? (Test requete 'configurable')
+<form action="" method="post">
+    <label>Chercher vélos à la station:
+        <input type="number" pattern="\d+" name="stationInput" placeholder="numéro de la station"/>
+    </label>
+    <p><input type="submit" value="Submit Query"/></p>
+</form>
+
 
 <?php
-$dbConnection = connectToDb();
-
 $query = file_get_contents(__DIR__ . '/../requetes/velosParStation.sql');
-
-$stmt = mysqli_prepare($dbConnection, $query);
-if (!mysqli_stmt_bind_param($stmt, 'i', $station))
-    print "<h3>problem binding query...</h3>\n";
-
-$station = 10;  // THIS will have to be in somehting like <form ...> for the user to select what he wants
-// Handle SQL Injections
-
-mysqli_stmt_execute($stmt);
-$queryResults = $stmt->get_result();
-
-print resultsToTable($queryResults);
-
+if (isset($_POST['stationInput']) && !empty($_POST['stationInput'])) {
+    print "<p>Vélos à la station " . $_POST['stationInput'] . "</p>";
+    parameterizedQueryToTable($query, 's', $_POST['stationInput']);
+} else
+    print "Choisissez une station";
 ?>
 
 </body>
