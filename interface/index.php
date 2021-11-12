@@ -4,10 +4,19 @@
 <html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title>Main Page</title>
+    <title>Gestion vélos</title>
     <?php include "dbUtils.php"; ?>
+        <h1>
+            <a href="index.php">
+                Gestion d'une flotte de vélos électriques
+            </a>
+        </h1>
+    <div class="container">
+        <a href="velos.php">Vélos</a>
+        | <a href="stations.php">Stations</a>
+    </div>
 </head>
 
 <body>
-<div><a href="velos.php">Vélos</a></div>
+Main page
 </body>

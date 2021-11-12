@@ -1,7 +1,29 @@
-table, td, th {
-    padding: 10px;
-    border: 2px solid #1c87c9;
-    border-radius: 5px;
-    background-color: #e5e5e5;
+table {
+    border-collapse: collapse;
+    border: 2px solid black;
+    width: 100%;
+    color: #588c7e;
+    font-family: sans-serif;
+    font-size: 11px;
     text-align: center;
+}
+th {
+    background-color: #588c7e;
+    border: 2px solid black;
+    color: white;
+}
+tr, td {
+    background-color: #f2f2f2;
+    border: 2px solid black;
+    border-radius: 5px;
+    padding: 2px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
 }

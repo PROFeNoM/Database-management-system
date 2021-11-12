@@ -4,8 +4,17 @@
 <html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title>Velo Informations</title>
+    <title>Informations vélos</title>
     <?php include "dbUtils.php"; ?>
+    <h1>
+        <a href="index.php">
+            Gestion d'une flotte de vélos électriques
+        </a>
+    </h1>
+    <div class="container">
+        <a href="velos.php">Vélos</a>
+        | <a href="stations.php">Stations</a>
+    </div>
 </head>
 
 <body>
@@ -17,9 +26,14 @@ print queryToTable($query);
 ?>
 
 Velos à la station ? (Test requete 'configurable')
+
 <form action="" method="post">
     <label>Chercher vélos à la station:
-        <input type="number" pattern="\d+" name="stationInput" placeholder="numéro de la station"/>
+        <select name="stationInput">
+            <?php
+            print columnToSelect('NUMERO_STATION', 'STATIONS');
+            ?>
+        </select>
     </label>
     <p><input type="submit" value="Submit Query"/></p>
 </form>
@@ -27,9 +41,10 @@ Velos à la station ? (Test requete 'configurable')
 
 <?php
 $query = file_get_contents(__DIR__ . '/../requetes/velosParStation.sql');
+
 if (isset($_POST['stationInput']) && !empty($_POST['stationInput'])) {
     print "<p>Vélos à la station " . $_POST['stationInput'] . "</p>";
-    parameterizedQueryToTable($query, 's', $_POST['stationInput']);
+    print parameterizedQueryToTable($query, 's', $_POST['stationInput']);
 } else
     print "Choisissez une station";
 ?>

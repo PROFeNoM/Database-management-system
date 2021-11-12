@@ -30,6 +30,10 @@ function connectToDb(): mysqli
     return $dbConnection;
 }
 
+/**
+ * @param mysqli_result $queryResults query results to convert to HTML table code
+ * @return string HTML code corresponding to the desired table
+ */
 function resultsToTable(mysqli_result $queryResults): string
 {
     if (mysqli_num_rows($queryResults) > 0) {
@@ -67,7 +71,14 @@ function queryToTable(string $query): string
     return resultsToTable($queryResults);
 }
 
-function parameterizedQueryToTable(string $query, string $types, ...$params) {
+/**
+ * @param string $query template query
+ * @param string $types types of the '?' in the sql query
+ * @param ...$params mixed substitutes for the '?' in the sql query
+ * @return string Corresponding table in HTML Code
+ */
+function parameterizedQueryToTable(string $query, string $types, ...$params): string
+{
     $dbConnection = connectToDb();
 
     $stmt = mysqli_prepare($dbConnection, $query);
@@ -76,5 +87,31 @@ function parameterizedQueryToTable(string $query, string $types, ...$params) {
     mysqli_stmt_execute($stmt);
     $queryResults = mysqli_stmt_get_result($stmt);
 
-    print resultsToTable($queryResults);
+    return resultsToTable($queryResults);
+}
+
+/**
+ * @param string $columnName column to extract from $tableName
+ * @param string $tableName table in the database
+ * @return string HTML code with each element of $columnName within option tags.
+ * HTML select tag must be placed beforehand.
+ */
+function columnToSelect(string $columnName, string $tableName): string
+{
+    $dbConnection = connectToDb();
+
+    $query = "select " . $columnName . " from " . $tableName . " order by " . $columnName . ";";
+
+    $queryResults = mysqli_query($dbConnection, $query);
+
+    if (mysqli_num_rows($queryResults) > 0) {
+        $htmlCode = "";
+
+        while ($row = mysqli_fetch_assoc($queryResults))
+            foreach ($row as $data)
+                $htmlCode .= "        <option>$data</option>\n";
+        return $htmlCode;
+    } else {
+        return "No results";
+    }
 }

@@ -1,5 +1,4 @@
-select
-    *
+select *
 from
     VELOS
 where
