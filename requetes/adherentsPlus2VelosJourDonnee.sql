@@ -1,6 +1,6 @@
 select
     A.*,
-    count(distinct E.NUMERO_VELO)
+    count(distinct E.NUMERO_VELO) NOMBRE_VELOS
 from
     ADHERENTS A
     join EMPRUNTS E
