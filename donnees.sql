@@ -174,7 +174,10 @@ commit;
 -- EMPRUNTS
 
 insert into EMPRUNTS values (1, '2020-12-05', '12:56:32', '13:23:34', 1, 2, 3, 1);
-insert into EMPRUNTS values (2, '2020-12-05', '23:43:01', null, 5, 3, 4, null);
+insert into EMPRUNTS values (2, '2020-12-05', '13:56:32', '14:23:34', 1, 2, 1, 3);
+insert into EMPRUNTS values (3, '2020-12-05', '15:56:32', '16:23:34', 1, 2, 3, 1);
+insert into EMPRUNTS values (4, '2020-12-05', '13:43:01', '13:59:01', 5, 3, 1, 4);
+insert into EMPRUNTS values (5, '2020-12-05', '23:43:01', null, 6, 3, 4, null);
 
 commit;
 
