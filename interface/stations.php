@@ -26,5 +26,17 @@
             ?>
         </select>
     </label>
+    <p><input type="submit" value="Submit Query"/></p>
 </form>
+
+<?php
+$query = file_get_contents(__DIR__ . '/../requetes/stationsDansVilleNomVille.sql');
+
+if (isset($_POST['villeInput']) && !empty($_POST['villeInput'])) {
+    print "<p>Stations à la ville " . $_POST['villeInput'] . "</p>";
+    print parameterizedQueryToTable($query, 's', $_POST['villeInput']);
+} else
+    print "Choisissez une ville";
+?>
+
 </body>

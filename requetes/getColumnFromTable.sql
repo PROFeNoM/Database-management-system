@@ -1,7 +1,0 @@
-select
-    ?
-from
-    ?
-order by
-    ?
-;

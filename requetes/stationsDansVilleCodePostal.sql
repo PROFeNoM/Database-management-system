@@ -1,4 +1,5 @@
-select *
+select
+    STATIONS.*
 from
     STATIONS
     inner join
