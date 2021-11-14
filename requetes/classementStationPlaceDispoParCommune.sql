@@ -11,7 +11,7 @@ select
 from
     STATIONS S
     join VILLES V2
-         on V2.NUMERO_INSEE = S.NUMERO_VILLE
+         on V2.NUMERO_VILLE = S.NUMERO_VILLE
 where
     V2.NOM_VILLE = ?
 order by

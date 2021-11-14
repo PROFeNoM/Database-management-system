@@ -14,6 +14,8 @@
     <div class="container">
         <a href="velos.php">Vélos</a>
         | <a href="stations.php">Stations</a>
+        | <a href="adherents.php">Adhérents</a>
+        | <a href="emprunts.php">Emprunts</a>
     </div>
 </head>
 
@@ -48,6 +50,14 @@ if (isset($_POST['stationInput']) && !empty($_POST['stationInput'])) {
 } else
     print "Choisissez une station";
 ?>
+
+<!-- START EDIT VELOS -->
+
+<?php
+print editTable('VELOS');
+?>
+
+<!-- END EDIT VELOS -->
 
 </body>
 </html>

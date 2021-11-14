@@ -14,10 +14,14 @@
     <div class="container">
         <a href="velos.php">Vélos</a>
         | <a href="stations.php">Stations</a>
+        | <a href="adherents.php">Adhérents</a>
+        | <a href="emprunts.php">Emprunts</a>
     </div>
 </head>
 
 <body>
+
+<!-- START CHERCHER STATION DANS VILLE -->
 <form action="" method="post">
     <label>Chercher station dans la ville:
         <select name="villeInput">
@@ -38,5 +42,14 @@ if (isset($_POST['villeInput']) && !empty($_POST['villeInput'])) {
 } else
     print "Choisissez une ville";
 ?>
+<!-- END CHERCHER STATION DANS VILLE -->
+
+<!-- START EDIT STATIONS -->
+
+<?php
+print editTable('STATIONS');
+?>
+
+<!-- END EDIT STATIONS -->
 
 </body>
