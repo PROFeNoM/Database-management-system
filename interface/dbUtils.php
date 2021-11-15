@@ -150,7 +150,7 @@ function editTable(string $tableName): string
         $pkValue = $row["$pkName"];
         $htmlCode .= <<<HEREDOC
     <td>
-    <form action="supprimerLigne.php" method="post">
+    <form action="resultatsSupprimer.php" method="post">
         <fieldset class="tiny">
             <input type="hidden" name="tableName" value="$tableName" />
             <input type="hidden" name="pkName" value="$pkName" />
@@ -302,16 +302,25 @@ function handleForeignKey($tableNameSingular, $columnName = "", $pkValue = null)
 
 /**
  * Update a record from a table in the database
- * @param $tableName string Name of the table in the databse
- * @param $columns array Columns name of the table
- * @param $values array Values to add
  * @return string HTML code corresponding to the query sent, and it's success
  */
-function updateRecord(string $tableName, array $columns, array $values): string
+function updateRecord(): string
 {
     $dbConnection = connectToDb();
 
-    $htmlCode = "";
+    $columns = array();
+    $values = array();
+    $tableName = "";
+
+    foreach ($_REQUEST as $fieldName => $data) {
+        if ($fieldName == "tableName") {
+            $tableName = $data;
+        } else {
+            array_push($columns, mysqli_real_escape_string($dbConnection, $fieldName));
+            array_push($values, mysqli_real_escape_string($dbConnection, $data));
+        }
+    }
+
     $pkName = $columns[0];
     $pkValueToUpdate = $values[0];
 
@@ -398,14 +407,20 @@ HEREDOC;
 
 /**
  * Add a record to a table from the database
- * @param $tableName string Name of the table
- * @param $columnsName array Name of the columns where data should be added
- * @param $values array Values to add
  * @return string HTML code corresponding to the query sent, and it's success
  */
-function addRecord(string $tableName, array $columnsName, array $values): string
+function addRecord(): string
 {
     $dbConnection = connectToDb();
+
+    foreach ($_REQUEST as $fieldName => $data) {
+        if ($fieldName == "tableName")
+            $tableName = $data;
+        else {
+            $columnsName[] = mysqli_real_escape_string($dbConnection, $fieldName);
+            $values[] = mysqli_real_escape_string($dbConnection, $data);
+        }
+    }
 
     array_shift($columnsName);  // Remove pk field; should be auto incremented
     $query = "insert into $tableName (";
@@ -440,14 +455,15 @@ function addRecord(string $tableName, array $columnsName, array $values): string
 
 /**
  * Delete a record from the database
- * @param $tableName string Name of the table in the database
- * @param $pkName string Name of the table primary key
- * @param $pkValue string Primary key value of the record to delete
  * @return string HTML code corresponding to the query sent, and it's success
  */
-function deleteRecord(string $tableName, string $pkName, string $pkValue): string
+function deleteRecord(): string
 {
     $dbConnection = connectToDb();
+
+    $tableName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "tableName"));
+    $pkName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkName"));
+    $pkValue = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkValue"));
 
     $query = "delete from $tableName where $pkName = '$pkValue'";
     $htmlCode = "Requête envoyée au serveur:<br><div class=\"query\"><p>$query</p></div><br>\n";

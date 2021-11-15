@@ -23,22 +23,7 @@
 
 <?php
 
-$dbConnection = connectToDb();
-
-$fields = array();
-$values = array();
-$tableName = "";
-
-foreach ($_REQUEST as $fieldName => $data) {
-    if ($fieldName == "tableName") {
-        $tableName = $data;
-    } else {
-        array_push($fields, mysqli_real_escape_string($dbConnection, $fieldName));
-        array_push($values, mysqli_real_escape_string($dbConnection, $data));
-    }
-}
-
-print updateRecord($tableName, $fields, $values);
+print updateRecord();
 
 ?>
 

@@ -229,6 +229,7 @@ end;
 -- TODO: Trigger checking that HEURE_DEPOT > HEURE_EMPRUNT
 -- TODO: kilometrageParVelo.sql
 -- TODO: procedures to prevent duplication between triggers
+-- TODO: Check ADRESSE format (?)
 
 -- ============================================================
 --   Utilisateur de la base de données

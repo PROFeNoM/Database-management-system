@@ -23,13 +23,7 @@
 
 <?php
 
-$dbConnection = connectToDb();
-
-$tableName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "tableName"));
-$pkName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkName"));
-$pkValue = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkValue"));
-
-print deleteRecord($tableName, $pkName, $pkValue);
+print deleteRecord();
 
 ?>
 
