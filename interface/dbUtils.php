@@ -16,12 +16,16 @@ function connectToDb(): mysqli
     $dbName = "VELO";
 
     $dbConnection = mysqli_connect($serverName, $userName, $dbPassword);
-    if (!$dbConnection)
-        print "<h3>problem connecting to database...</h3>\n" . mysqli_error($dbConnection);
+    if (!$dbConnection) {
+        print "<h3>Erreur lors de la connexion à la base de données...</h3>\n";
+        print "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";;
+    }
 
     $select = mysqli_select_db($dbConnection, $dbName);
-    if (!$select)
-        print "<h3>problem selecting database...</h3>\n" . mysqli_error($dbConnection);
+    if (!$select) {
+        print "<h3>Erreur lors de la sélection de la base de données $dbName...</h3>\n";
+        print "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";;
+    }
 
     return $dbConnection;
 }
@@ -38,17 +42,18 @@ function resultsToTable(mysqli_result $queryResults): string
 
         $htmlCode .= "<tr>\n";
         while ($field = mysqli_fetch_field($queryResults))
-            $htmlCode .= "    <th>$field->name</th>\n";
+            $htmlCode .= "\t<th>$field->name</th>\n";
         $htmlCode .= "</tr>\n\n";
 
         while ($row = mysqli_fetch_assoc($queryResults)) {
             $htmlCode .= "<tr>\n";
             foreach ($row as $data)
-                $htmlCode .= "    <td>$data</td>\n";
+                $htmlCode .= "\t<td>$data</td>\n";
             $htmlCode .= "</tr>\n\n";
         }
 
         $htmlCode .= "</table>\n";
+
         return $htmlCode;
     } else
         return "No results";
@@ -80,12 +85,15 @@ function parameterizedQueryToTable(string $query, string $types, ...$params): st
     $dbConnection = connectToDb();
 
     $stmt = mysqli_prepare($dbConnection, $query);
-    if (!mysqli_stmt_bind_param($stmt, $types, ...$params))
-        print "<h3>problem binding query...</h3>\n" . mysqli_stmt_error($stmt);
-    mysqli_stmt_execute($stmt);
-    $queryResults = mysqli_stmt_get_result($stmt);
+    if (!mysqli_stmt_bind_param($stmt, $types, ...$params)) {
+        return "<h3>Erreur lors du binding de la requête...</h3>\n"
+            . "<div class=\"error\"><p>" . mysqli_stmt_error($stmt) . "</p></div>\n";
+    } else {
+        mysqli_stmt_execute($stmt);
+        $queryResults = mysqli_stmt_get_result($stmt);
 
-    return resultsToTable($queryResults);
+        return resultsToTable($queryResults);
+    }
 }
 
 /**
@@ -108,7 +116,7 @@ function columnToSelect(string $columnName, string $tableName): string
 
         while ($row = mysqli_fetch_assoc($queryResults))
             foreach ($row as $data)
-                $htmlCode .= "        <option>$data</option>\n";
+                $htmlCode .= "\t\t<option>$data</option>\n";
         return $htmlCode;
     } else
         return "No results";
@@ -133,20 +141,14 @@ function editTable(string $tableName): string
 
     $htmlCode .= "<tr>\n";
     while ($field = mysqli_fetch_field($queryResults))
-        $htmlCode .= "    <th>$field->name</th>\n";
-
-    $pkName = mysqli_fetch_field_direct($queryResults, 0)->name;
-
-    $htmlCode .= "<th></th><th></th>\n";
+        $htmlCode .= "\t<th>$field->name</th>\n";
     $htmlCode .= "</tr>\n\n";
 
+    $pkName = mysqli_fetch_field_direct($queryResults, 0)->name;
     while ($row = mysqli_fetch_assoc($queryResults)) {
         $htmlCode .= "<tr>\n";
         foreach ($row as $data)
-            $htmlCode .= "    <td>$data</td>\n";
-
-
-        // delete from <table> where <key> = <keyval>
+            $htmlCode .= "\t<td>$data</td>\n";
         $pkValue = $row["$pkName"];
         $htmlCode .= <<<HEREDOC
     <td>
@@ -160,7 +162,6 @@ function editTable(string $tableName): string
     </form>
     </td>
 HEREDOC;
-        //update: won't update yet, but set up edit form
         $htmlCode .= <<<HEREDOC
     <td>
     <form action="modifierLigne.php" method="post">
@@ -195,14 +196,16 @@ HEREDOC;
 }
 
 /**
- * @param $tableName string Name of the table in the database
- * @param $pkName string Primary key column name of the table in the database
- * @param $pkValue mixed Value of the primary key
+ * Generate HTML code allowing a user to input and hence edit a record
  * @return string HTML Code allowing to edit a record
  */
-function editRecord(string $tableName, string $pkName, $pkValue): string
+function editRecord(): string
 {
     $dbConnection = connectToDb();
+
+    $tableName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "tableName"));
+    $pkName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkName"));
+    $pkValue = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkValue"));
 
     $htmlCode = "";
 
@@ -222,24 +225,24 @@ function editRecord(string $tableName, string $pkName, $pkValue): string
 HEREDOC;
 
     $isPk = 1;
-    foreach ($row as $column => $data) {
+    foreach ($row as $columnName => $data) {
         if ($isPk == 1) {
             // Don't edit primary key
             $htmlCode .= <<<HEREDOC
-            <dt>$column</dt>
-            <dd>$data<input type = "hidden" name = "$column" value = "$data" /></dd>
+            <dt>$columnName</dt>
+            <dd>$data<input type = "hidden" name = "$columnName" value = "$data" /></dd>
 HEREDOC;
             $isPk = 0;
-        } else if (preg_match("/^NUMERO_(.*?)(?:_|$)/", $column, $match)) {
-            $values = handleForeignKey($match[1], $column, $data);
+        } else if (preg_match("/^NUMERO_(.*?)(?:_|$)/", $columnName, $match)) {
+            $values = handleForeignKey($match[1], $columnName, $data);
             $htmlCode .= <<<HEREDOC
-            <dt>$column</dt>
+            <dt>$columnName</dt>
             <dd>$values</dd>
 HEREDOC;
         } else {
             $htmlCode .= <<<HEREDOC
-            <dt>$column</dt>
-            <dd><input type="text" name="$column" value="$data" /></dd>
+            <dt>$columnName</dt>
+            <dd><input type="text" name="$columnName" value="$data" /></dd>
 HEREDOC;
         }
     }
@@ -352,12 +355,13 @@ function updateRecord(): string
 
 /**
  * Generate HTML code to add a new record
- * @param $tableName string name of the table in the database
  * @return string HTML Code allowing to the user to input the new record data
  */
-function addToTable(string $tableName): string
+function addToTable(): string
 {
     $dbConnection = connectToDb();
+
+    $tableName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "tableName"));
 
     // get field names
     $query = "select * from $tableName;";

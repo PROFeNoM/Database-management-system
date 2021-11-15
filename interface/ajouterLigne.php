@@ -22,11 +22,9 @@
 <body>
 
 <?php
-$dbConnection = connectToDb();
 
-$tableName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "tableName"));
+print addToTable();
 
-print addToTable($tableName);
 ?>
 
 </body>
