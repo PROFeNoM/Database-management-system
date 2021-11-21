@@ -175,6 +175,40 @@ alter table SEPARER
 --   Triggers
 -- ============================================================
 
+create trigger EMPRUNTS_INSERT_STARTING_TERMINAL
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  VELOS V
+              where
+                      V.NUMERO_VELO = NEW.NUMERO_VELO
+                and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART)
+    then
+        signal sqlstate '45000'
+            set message_text = 'Starting terminals don''t match ';
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_STARTING_TERMINAL
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  VELOS V
+              where
+                      V.NUMERO_VELO = NEW.NUMERO_VELO
+                and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART)
+    then
+        signal sqlstate '45000'
+            set message_text = 'Starting terminals don''t match ';
+    end if;
+end;
+
 create trigger VELOS_INSERT_BATTERY_CHECK
     before insert
     on VELOS
@@ -187,7 +221,6 @@ begin
     end if;
 end;
 
--- TODO: use procedure to prevent duplication
 create trigger VELOS_UPDATE_BATTERY_CHECK
     before update
     on VELOS
@@ -200,7 +233,7 @@ begin
     end if;
 end;
 
-create trigger STATIONS_UPDATE_CHECK_BORNES
+create trigger STATIONS_INSERT_CHECK_BORNES
     before insert
     on STATIONS
     for each row
@@ -224,9 +257,168 @@ begin
     end if;
 end;
 
--- TODO: Trigger checking if a bike is available when inserting in EMPRUNTS
--- TODO: Trigger changing bike's NUMERO_STATION to null when EMPRUNTS.HEURE_DEPOT is null for the corresponding bike
--- TODO: Trigger checking that HEURE_DEPOT > HEURE_EMPRUNT
+create trigger EMPRUNTS_INSERT_CHECK_AVAILABLE
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  VELOS V
+              where
+                    V.NUMERO_STATION is null
+                and V.NUMERO_VELO = NEW.NUMERO_VELO)
+    then
+        signal sqlstate '45000'
+            set message_text = 'The selected bike isn''t available for now.';
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_CHECK_AVAILABLE
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  VELOS V
+              where
+                    V.NUMERO_STATION is null
+                and V.NUMERO_VELO = NEW.NUMERO_VELO)
+    then
+        signal sqlstate '45000'
+            set message_text = 'The selected bike isn''t available for now.';
+    end if;
+end;
+
+create trigger EMPRUNTS_INSERT_TAKE_BIKE
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if (NEW.HEURE_DEPOT is null)
+    then
+        update VELOS set NUMERO_STATION = null where NUMERO_VELO = NEW.NUMERO_VELO;
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_TAKE_BIKE
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if (NEW.HEURE_DEPOT is null)
+    then
+        update VELOS set NUMERO_STATION = null where NUMERO_VELO = NEW.NUMERO_VELO;
+    end if;
+end;
+
+create trigger EMPRUNTS_INSERT_RELEASE_BIKE
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if (NEW.HEURE_DEPOT is not null)
+    then
+        update VELOS set NUMERO_STATION = NEW.NUMERO_STATION_ARRIVEE where NUMERO_VELO = NEW.NUMERO_VELO;
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_RELEASE_BIKE
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if (NEW.HEURE_DEPOT is not null)
+    then
+        update VELOS set NUMERO_STATION = NEW.NUMERO_STATION_ARRIVEE where NUMERO_VELO = NEW.NUMERO_VELO;
+    end if;
+end;
+
+create trigger EMPRUNTS_INSERT_CHECK_HOURS
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if (NEW.HEURE_DEPOT < NEW.HEURE_EMPRUNT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'The deposit time must be later than the borrowing time';
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_CHECK_HOURS
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if (NEW.HEURE_DEPOT < NEW.HEURE_EMPRUNT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'The deposit time must be later than the borrowing time';
+    end if;
+end;
+
+create trigger EMPRUNTS_INSERT_MATCHING_AVAILABILITY
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if ((NEW.HEURE_DEPOT is null and NEW.NUMERO_STATION_ARRIVEE is not null)
+        or (NEW.HEURE_DEPOT is not null and NEW.NUMERO_STATION_ARRIVEE is null))
+    then
+        signal sqlstate '45000'
+            set message_text = 'HEURE_DEPOT doesn''t match NUMERO_STATION_ARRIVEE';
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_MATCHING_AVAILABILITY
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if ((NEW.HEURE_DEPOT is null and NEW.NUMERO_STATION_ARRIVEE is not null)
+        or (NEW.HEURE_DEPOT is not null and NEW.NUMERO_STATION_ARRIVEE is null))
+    then
+        signal sqlstate '45000'
+            set message_text = 'HEURE_DEPOT doesn''t match NUMERO_STATION_ARRIVEE';
+    end if;
+end;
+
+create trigger EMPRUNTS_INSERT_BETWEEN_TIMES
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  EMPRUNTS E
+              where
+                    E.HEURE_EMPRUNT <= NEW.HEURE_EMPRUNT
+                and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'Selected bike is already being used during this time frame.';
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_BETWEEN_TIMES
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  EMPRUNTS E
+              where
+                    E.HEURE_EMPRUNT <= NEW.HEURE_EMPRUNT
+                and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'Selected bike is already being used during this time frame.';
+    end if;
+end;
+
 -- TODO: kilometrageParVelo.sql
 -- TODO: procedures to prevent duplication between triggers
 -- TODO: Check ADRESSE format (?)

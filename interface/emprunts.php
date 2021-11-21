@@ -20,9 +20,10 @@
 </head>
 
 <body>
+<hr>
 
 <!-- START EDIT EMPRUNTS -->
-
+<h2>Informations sur les emprunts</h2>
 <?php
 print editTable('EMPRUNTS');
 ?>

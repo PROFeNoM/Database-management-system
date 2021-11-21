@@ -107,7 +107,7 @@ function columnToSelect(string $columnName, string $tableName): string
 {
     $dbConnection = connectToDb();
 
-    $query = "select $columnName from $tableName order by $columnName ;";
+    $query = "select distinct $columnName from $tableName order by $columnName ;";
 
     $queryResults = mysqli_query($dbConnection, $query);
 
@@ -142,6 +142,8 @@ function editTable(string $tableName): string
     $htmlCode .= "<tr>\n";
     while ($field = mysqli_fetch_field($queryResults))
         $htmlCode .= "\t<th>$field->name</th>\n";
+    $htmlCode .= "\t<th></th>\n";
+    $htmlCode .= "\t<th></th>\n";
     $htmlCode .= "</tr>\n\n";
 
     $pkName = mysqli_fetch_field_direct($queryResults, 0)->name;
@@ -153,11 +155,11 @@ function editTable(string $tableName): string
         $htmlCode .= <<<HEREDOC
     <td>
     <form action="resultatsSupprimer.php" method="post">
-        <fieldset class="tiny">
+        <fieldset class="fieldsetButton">
             <input type="hidden" name="tableName" value="$tableName" />
             <input type="hidden" name="pkName" value="$pkName" />
             <input type="hidden" name="pkValue" value="$pkValue" />
-            <input type="submit" value="delete" />
+            <input type="submit" value="delete" class="button delete"/>
         </fieldset>
     </form>
     </td>
@@ -165,11 +167,11 @@ HEREDOC;
         $htmlCode .= <<<HEREDOC
     <td>
     <form action="modifierLigne.php" method="post">
-        <fieldset class="tiny">
+        <fieldset class="fieldsetButton">
             <input type="hidden" name="tableName" value="$tableName" />
             <input type="hidden" name="pkName" value="$pkName" />
             <input type="hidden" name="pkValue" value="$pkValue" />
-            <input type="submit" value="edit" />
+            <input type="submit" value="edit" class="button editButton"/>
         </fieldset>
     </form>
     </td>
@@ -182,9 +184,9 @@ HEREDOC;
     <tr>
     <td colspan="100%">
         <form action="ajouterLigne.php" method="post">
-            <fieldset class="tiny">
+            <fieldset class="fieldsetButton">
                 <input type="hidden" name="tableName" value="$tableName" />
-                <button type="submit">Ajouter une ligne</button>
+                <button class="button add" type="submit">Ajouter une ligne</button>
             </fieldset>
         </form>
     </td>
@@ -219,7 +221,7 @@ function editRecord(): string
 
     $htmlCode .= <<<HEREDOC
 <form action = "resultatsModification.php" method = "post">
-<fieldset>
+<fieldset class="edit">
     <input type = "hidden" name = "tableName" value = "$tableName" />
     <dl>
 HEREDOC;
@@ -248,7 +250,7 @@ HEREDOC;
     }
     $htmlCode .= <<<HEREDOC
     </dl>
-    <button type="submit">Modifier la ligne</button>
+    <button class="button" type="submit">Modifier la ligne</button>
 </fieldset>
 </form>
 HEREDOC;
@@ -291,7 +293,7 @@ function handleForeignKey($tableNameSingular, $columnName = "", $pkValue = null)
     $queryResults = mysqli_query($dbConnection, $query, MYSQLI_STORE_RESULT);
 
     $htmlCode = empty($columnName) ? "<select name=\"$foreignTablePkName\">\n" : "<select name=\"$columnName\">\n";
-
+    $htmlCode .= "<option value=\"\">null</option>\n";
     while ($row = mysqli_fetch_assoc($queryResults)) {
         $pkRecord = $row["$foreignTablePkName"];
         $data = $row["$correspondingForeignFieldName"];
@@ -401,7 +403,7 @@ HEREDOC;
     $htmlCode .= <<<HEREDOC
         </dl>
         <input type="hidden" name="tableName" value="$tableName" >
-        <button type="submit">Ajouter la ligne</button>
+        <button class="button" type="submit">Ajouter la ligne</button>
         </fieldset>
     </form>
 HEREDOC;
