@@ -93,7 +93,7 @@ create table SEPARER
 (
     NUMERO_STATION_1 INT not null,
     NUMERO_STATION_2 INT not null,
-    DISTANCE         DECIMAL(4, 1),
+    DISTANCE         DECIMAL(4, 2),
     constraint PK_VILLES primary key (NUMERO_STATION_1, NUMERO_STATION_2)
 );
 
@@ -419,9 +419,9 @@ begin
     end if;
 end;
 
--- TODO: kilometrageParVelo.sql
 -- TODO: procedures to prevent duplication between triggers
 -- TODO: Check ADRESSE format (?)
+-- TODO: Adherents shoudln't be able to borrow two bike in the same time frame
 
 -- ============================================================
 --   Utilisateur de la base de données

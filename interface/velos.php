@@ -31,6 +31,15 @@ print queryToTable($query);
 ?>
 <!-- END VELOS EN COURS UTILISATION -->
 
+<!-- START KM VELOS -->
+<h2>Kilométrage des vélos</h2>
+
+<?php
+$query = file_get_contents(__DIR__ . '/../requetes/kilometrageParVelo.sql');
+print queryToTable($query);
+?>
+<!-- END KM VELOS -->
+
 <hr>
 
 <!-- START USAGERS VELOS JOUR -->
