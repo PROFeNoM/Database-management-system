@@ -31,6 +31,8 @@ print queryToTable($query);
 ?>
 <!-- END VELOS EN COURS UTILISATION -->
 
+<hr>
+
 <!-- START KM VELOS -->
 <h2>Kilométrage des vélos</h2>
 
