@@ -273,7 +273,7 @@ begin
             set message_text = 'The selected bike isn''t available for now.';
     end if;
 end;
-
+/*
 create trigger EMPRUNTS_UPDATE_CHECK_AVAILABLE
     before update
     on EMPRUNTS
@@ -290,7 +290,7 @@ begin
             set message_text = 'The selected bike isn''t available for now.';
     end if;
 end;
-
+*/
 create trigger EMPRUNTS_INSERT_TAKE_BIKE
     before insert
     on EMPRUNTS
@@ -395,7 +395,8 @@ begin
                   EMPRUNTS E
               where
                     E.HEURE_EMPRUNT <= NEW.HEURE_EMPRUNT
-                and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT)
+                and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT
+                and NEW.HEURE_DEPOT is not null)
     then
         signal sqlstate '45000'
             set message_text = 'Selected bike is already being used during this time frame.';
@@ -412,7 +413,8 @@ begin
                   EMPRUNTS E
               where
                     E.HEURE_EMPRUNT <= NEW.HEURE_EMPRUNT
-                and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT)
+                and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT
+                and NEW.HEURE_DEPOT is not null)
     then
         signal sqlstate '45000'
             set message_text = 'Selected bike is already being used during this time frame.';
@@ -422,6 +424,19 @@ end;
 -- TODO: procedures to prevent duplication between triggers
 -- TODO: Check ADRESSE format (?)
 -- TODO: Adherents shoudln't be able to borrow two bike in the same time frame
+-- TODO: No more bike than allowed in each terminals
+-- TODO: ADD DATE_DEPOT
+-- TODO: DATE_EMPRUNT >= DATE_MISE_EN_SERVICE
+-- TODO: AJOUTER DATE_INSCRIPTIION !!!!!
+-- TODO: DATE_EMPRUNT >= DATE_INSCRIPTION
+-- TODO: SEPARER distance must be positive >
+-- TODO: When deleting a terminal, don't delete previous borrow
+-- TODO: Can't delete a VILLE if it is linked to a terminal or a user
+-- TODO: Can't delete ETAT that exists in a VELOS
+-- TODO: Delete a bike when it is used and EMPRUNTS is deleted
+-- TODO: Double primary key
+-- TODO: Create SEPARER(STATION,STATION,0) when inserting new terminal
+-- TODO: Can't update SEPARER(STATION,SEPARER,0)
 
 -- ============================================================
 --   Utilisateur de la base de données

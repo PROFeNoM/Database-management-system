@@ -4,7 +4,7 @@
 <html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title>Process Add</title>
+    <title>Informations emprunts</title>
     <?php include "dbUtils.php"; ?>
     <h1>
         <a href="index.php">
@@ -17,18 +17,21 @@
         | <a href="adherents.php">Adhérents</a>
         | <a href="emprunts.php">Emprunts</a>
         | <a href="etats.php">Etats</a>
+        | <a href="etats.php">Séparer</a>
         | <a href="separer.php">Séparer</a>
         | <a href="villes.php">Villes</a>
     </div>
 </head>
 
 <body>
+<hr>
 
+<!-- START EDIT SEPARER -->
+<h2>Informations sur les distances</h2>
 <?php
-
-print addRecord();
-
+print editTable('SEPARER');
 ?>
 
+<!-- END EDIT SEPARER -->
 
 </body>

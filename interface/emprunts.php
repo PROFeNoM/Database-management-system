@@ -16,6 +16,9 @@
         | <a href="stations.php">Stations</a>
         | <a href="adherents.php">Adhérents</a>
         | <a href="emprunts.php">Emprunts</a>
+        | <a href="etats.php">Etats</a>
+        | <a href="separer.php">Séparer</a>
+        | <a href="villes.php">Villes</a>
     </div>
 </head>
 

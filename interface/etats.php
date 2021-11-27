@@ -4,7 +4,7 @@
 <html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title>Process Add</title>
+    <title>Informations emprunts</title>
     <?php include "dbUtils.php"; ?>
     <h1>
         <a href="index.php">
@@ -23,12 +23,14 @@
 </head>
 
 <body>
+<hr>
 
+<!-- START EDIT ETATS -->
+<h2>Informations sur les états</h2>
 <?php
-
-print addRecord();
-
+print editTable('ETATS');
 ?>
 
+<!-- END EDIT ETATS -->
 
 </body>
