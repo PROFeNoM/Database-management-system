@@ -88,13 +88,13 @@ commit;
 
 -- ADHERENTS
 
-insert into ADHERENTS values (1, 'Shavershian', 'Aziz', '59 Rue de la Paix', 33096);
-insert into ADHERENTS values (2, 'Diakhaté', 'Issa', '667 Rue Yves Saint Laurent', 33434);
-insert into ADHERENTS values (3, 'Andrieu', 'Nabil', '2 Rue Deux Frères', 33318);
-insert into ADHERENTS values (4, 'Andrieu', 'Tarik', '2B Rue Deux Frères', 33318);
-insert into ADHERENTS values (5, 'Jackson', 'Mickael', '89 Rue des frissons', 33522);
-insert into ADHERENTS values (6, 'Bruce Mathers III', 'Marshall', '1 Rue des Dieux', 33063);
-insert into ADHERENTS values (7, 'Shakur', 'Tupac', '42 Rue Vision', 33449);
+insert into ADHERENTS values (1, 'Shavershian', 'Aziz', '59 Rue de la Paix', 33096, '2020-12-03');
+insert into ADHERENTS values (2, 'Diakhaté', 'Issa', '667 Rue Yves Saint Laurent', 33434, '2020-12-03');
+insert into ADHERENTS values (3, 'Andrieu', 'Nabil', '2 Rue Deux Frères', 33318, '2020-12-03');
+insert into ADHERENTS values (4, 'Andrieu', 'Tarik', '2B Rue Deux Frères', 33318, '2020-12-03');
+insert into ADHERENTS values (5, 'Jackson', 'Mickael', '89 Rue des frissons', 33522, '2020-12-03');
+insert into ADHERENTS values (6, 'Bruce Mathers III', 'Marshall', '1 Rue des Dieux', 33063, '2020-12-03');
+insert into ADHERENTS values (7, 'Shakur', 'Tupac', '42 Rue Vision', 33449, '2020-12-03');
 
 commit;
 
@@ -173,11 +173,11 @@ commit;
 
 -- EMPRUNTS
 
-insert into EMPRUNTS values (1, '2020-12-05', '12:56:32', '13:23:34', 1, 2, 3, 1);
-insert into EMPRUNTS values (2, '2020-12-05', '13:56:32', '14:23:34', 1, 2, 1, 3);
-insert into EMPRUNTS values (3, '2020-12-05', '15:56:32', '16:23:34', 1, 2, 3, 1);
-insert into EMPRUNTS values (4, '2020-12-05', '13:43:01', '13:59:01', 6, 3, 8, 4);
-insert into EMPRUNTS values (5, '2020-12-05', '23:43:01', null, 6, 3, 4, null);
+insert into EMPRUNTS values (1, '2020-12-05', '12:56:32', '2020-12-05', '13:23:34', 1, 2, 3, 1);
+insert into EMPRUNTS values (2, '2020-12-05', '13:56:32', '2020-12-05', '14:23:34', 1, 2, 1, 3);
+insert into EMPRUNTS values (3, '2020-12-05', '15:56:32', '2020-12-05', '16:23:34', 1, 2, 3, 1);
+insert into EMPRUNTS values (4, '2020-12-05', '13:43:01', '2020-12-05', '13:59:01', 6, 3, 8, 4);
+insert into EMPRUNTS values (5, '2020-12-05', '23:43:01', null, null, 6, 3, 4, null);
 
 commit;
 

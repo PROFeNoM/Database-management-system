@@ -41,11 +41,12 @@ create table STATIONS
 -- ============================================================
 create table ADHERENTS
 (
-    NUMERO_ADHERENT INT       not null auto_increment,
-    NOM_ADHERENT    CHAR(42)  not null,
-    PRENOM_ADHERENT CHAR(42),
-    ADRESSE         CHAR(255) not null,
-    NUMERO_VILLE    INT       not null,
+    NUMERO_ADHERENT  INT       not null auto_increment,
+    NOM_ADHERENT     CHAR(42)  not null,
+    PRENOM_ADHERENT  CHAR(42),
+    ADRESSE          CHAR(255) not null,
+    NUMERO_VILLE     INT       not null,
+    DATE_INSCRIPTION DATE      not null,
     constraint PK_ADHERENTS primary key (NUMERO_ADHERENT)
 );
 
@@ -57,6 +58,7 @@ create table EMPRUNTS
     NUMERO_EMPRUNT         INT  not null auto_increment,
     DATE_EMPRUNT           DATE not null,
     HEURE_EMPRUNT          TIME not null,
+    DATE_DEPOT             DATE null,
     HEURE_DEPOT            TIME,
     NUMERO_VELO            INT  not null,
     NUMERO_ADHERENT        INT  not null,
@@ -184,7 +186,7 @@ begin
               from
                   VELOS V
               where
-                      V.NUMERO_VELO = NEW.NUMERO_VELO
+                    V.NUMERO_VELO = NEW.NUMERO_VELO
                 and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART)
     then
         signal sqlstate '45000'
@@ -201,7 +203,7 @@ begin
               from
                   VELOS V
               where
-                      V.NUMERO_VELO = NEW.NUMERO_VELO
+                    V.NUMERO_VELO = NEW.NUMERO_VELO
                 and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART)
     then
         signal sqlstate '45000'
@@ -421,22 +423,234 @@ begin
     end if;
 end;
 
+create trigger STATIONS_UPDATE_BIKE_LIMIT
+    before update
+    on STATIONS
+    for each row
+begin
+    if ((select count(*) from VELOS V where V.NUMERO_STATION = NEW.NUMERO_STATION) > NEW.NOMBRE_BORNES)
+    then
+        signal sqlstate '45000'
+            set message_text = 'Le nombre de vélos à la station dépasse la capacité disponible.';
+    end if;
+end;
+
+create trigger VELOS_UPDATE_STATIONS_LIMIT
+    before update
+    on VELOS
+    for each row
+begin
+    if ((select count(*) from VELOS V where V.NUMERO_STATION = NEW.NUMERO_STATION) >
+        (select NOMBRE_BORNES from STATIONS S where S.NUMERO_STATION = NEW.NUMERO_STATION))
+    then
+        signal sqlstate '45000'
+            set message_text = 'Le nombre de vélos à la station dépasse la capacité disponible.';
+    end if;
+end;
+
+create trigger VELOS_INSERT_STATIONS_LIMIT
+    before insert
+    on VELOS
+    for each row
+begin
+    if ((select count(*) from VELOS V where V.NUMERO_STATION = NEW.NUMERO_STATION) >
+        (select NOMBRE_BORNES from STATIONS S where S.NUMERO_STATION = NEW.NUMERO_STATION))
+    then
+        signal sqlstate '45000'
+            set message_text = 'Le nombre de vélos à la station dépasse la capacité disponible.';
+    end if;
+end;
+
+create trigger SEPARER_UPDATE_DISTANCE_POSITIVE
+    before update
+    on SEPARER
+    for each row
+begin
+    if (NEW.DISTANCE < 0)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La distance séparant deux stations doit être positive ou nulle.';
+    end if;
+end;
+
+create trigger SEPARER_INSERT_DISTANCE_POSITIVE
+    before insert
+    on SEPARER
+    for each row
+begin
+    if (NEW.DISTANCE < 0)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La distance séparant deux stations doit être positive ou nulle.';
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_IS_USER_CREATED
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if ((select A.DATE_INSCRIPTION from ADHERENTS A where A.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT) > NEW.DATE_EMPRUNT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La date d\'inscription doit être antérieure à la date d\'emprunt';
+    end if;
+end;
+
+create trigger EMPRUNTS_INSERT_IS_USER_CREATED
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if ((select A.DATE_INSCRIPTION from ADHERENTS A where A.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT) > NEW.DATE_EMPRUNT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La date d\'inscription doit être antérieure à la date d\'emprunt';
+    end if;
+end;
+
+create trigger ADHERENTS_UPDATE_CHECK_DATES
+    before update
+    on ADHERENTS
+    for each row
+begin
+    if exists(select *
+              from
+                  EMPRUNTS E
+              where
+                    E.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT
+                and E.DATE_EMPRUNT < NEW.DATE_INSCRIPTION)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La date d\'inscription doit être antérieure à la date d\'emprunt';
+    end if;
+end;
+
+create trigger STATIONS_INSERT_CREATE_SEPARER_DISTANCE
+    after insert
+    on STATIONS
+    for each row
+begin
+    insert into SEPARER values (NEW.NUMERO_STATION, NEW.NUMERO_STATION, 0);
+end;
+
+create trigger SEPARER_UPDATE_SAME_STATION
+    before update
+    on SEPARER
+    for each row
+begin
+    if (OLD.NUMERO_STATION_1 = OLD.NUMERO_STATION_2)
+    then
+        signal sqlstate '45000'
+            set message_text = 'Interdiction de modifier cette entrée.';
+    end if;
+end;
+
+create trigger EMPRUNTS_DELETE_BIKE_IN_USE
+    after delete
+    on EMPRUNTS
+    for each row
+begin
+    if (OLD.HEURE_DEPOT is null)
+    then
+        delete from VELOS where VELOS.NUMERO_VELO = OLD.NUMERO_VELO;
+    end if;
+end;
+
+create trigger ETATS_DELETE_EXISTS_IN_VELOS
+    before delete
+    on ETATS
+    for each row
+begin
+    if exists(select *
+              from
+                  VELOS V
+              where
+                  V.NUMERO_ETAT = OLD.NUMERO_ETAT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'L\'etat est toujours utilisé par un vélos.';
+    end if;
+end;
+
+create trigger VILLES_DELETE_USED_ADHERENTS
+    before delete
+    on VILLES
+    for each row
+begin
+    if exists(select * from ADHERENTS A where A.NUMERO_VILLE = OLD.NUMERO_VILLE)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La ville est toujours utilisée par un adhérent.';
+    end if;
+end;
+
+create trigger VILLES_DELETE_USED_STATIONS
+    before delete
+    on VILLES
+    for each row
+begin
+    if exists(select * from STATIONS S where S.NUMERO_VILLE = OLD.NUMERO_VILLE)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La ville est toujours utilisée par une station.';
+    end if;
+end;
+
+create trigger EMPRUNTS_UPDATE_DATES_MISE_EN_SERVICE
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  VELOS V
+              where
+                    V.NUMERO_VELO = NEW.NUMERO_VELO
+                and V.DATE_MISE_EN_SERVICE > NEW.DATE_EMPRUNT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La date de mise en service doit être antérieure à celle d\'emprunt';
+    end if;
+end;
+
+create trigger EMPRUNTS_INSERT_DATES_MISE_EN_SERVICE
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  VELOS V
+              where
+                    V.NUMERO_VELO = NEW.NUMERO_VELO
+                and V.DATE_MISE_EN_SERVICE > NEW.DATE_EMPRUNT)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La date de mise en service doit être antérieure à celle d\'emprunt';
+    end if;
+end;
+
+create trigger VELOS_UPDATE_DATE_MISE_EN_SERVICE
+    before update
+    on VELOS
+    for each row
+begin
+    if exists(select *
+              from
+                  EMPRUNTS E
+              where
+                    E.NUMERO_VELO = NEW.NUMERO_VELO
+                and E.DATE_EMPRUNT < NEW.DATE_MISE_EN_SERVICE)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La date de mise en service doit être antérieure à celle d\'emprunt';
+    end if;
+end;
+
 -- TODO: procedures to prevent duplication between triggers
--- TODO: Check ADRESSE format (?)
--- TODO: Adherents shoudln't be able to borrow two bike in the same time frame
--- TODO: No more bike than allowed in each terminals
--- TODO: ADD DATE_DEPOT
--- TODO: DATE_EMPRUNT >= DATE_MISE_EN_SERVICE
--- TODO: AJOUTER DATE_INSCRIPTIION !!!!!
--- TODO: DATE_EMPRUNT >= DATE_INSCRIPTION
--- TODO: SEPARER distance must be positive >
 -- TODO: When deleting a terminal, don't delete previous borrow
--- TODO: Can't delete a VILLE if it is linked to a terminal or a user
--- TODO: Can't delete ETAT that exists in a VELOS
--- TODO: Delete a bike when it is used and EMPRUNTS is deleted
--- TODO: Double primary key
--- TODO: Create SEPARER(STATION,STATION,0) when inserting new terminal
--- TODO: Can't update SEPARER(STATION,SEPARER,0)
+-- TODO: Classement vélos par semaine
 
 -- ============================================================
 --   Utilisateur de la base de données

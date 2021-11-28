@@ -18,13 +18,13 @@ function connectToDb(): mysqli
     $dbConnection = mysqli_connect($serverName, $userName, $dbPassword);
     if (!$dbConnection) {
         print "<h3>Erreur lors de la connexion à la base de données...</h3>\n";
-        print "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";;
+        print "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";
     }
 
     $select = mysqli_select_db($dbConnection, $dbName);
     if (!$select) {
         print "<h3>Erreur lors de la sélection de la base de données $dbName...</h3>\n";
-        print "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";;
+        print "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";
     }
 
     return $dbConnection;
@@ -73,6 +73,21 @@ function queryToTable(string $query): string
     return resultsToTable($queryResults);
 }
 
+function parametrizedQueryResults(string $query, string $types, ...$params): ?mysqli_result
+{
+    $dbConnection = connectToDb();
+
+    $stmt = mysqli_prepare($dbConnection, $query);
+    if (!mysqli_stmt_bind_param($stmt, $types, ...$params)) {
+        print "<h3>Erreur lors du binding de la requête...</h3>\n"
+            . "<div class=\"error\"><p>" . mysqli_stmt_error($stmt) . "</p></div>\n";
+        return null;
+    } else {
+        mysqli_stmt_execute($stmt);
+        return mysqli_stmt_get_result($stmt);
+    }
+}
+
 /**
  * Generate HTML table from mysql parameterized query
  * @param string $query template query
@@ -82,18 +97,7 @@ function queryToTable(string $query): string
  */
 function parameterizedQueryToTable(string $query, string $types, ...$params): string
 {
-    $dbConnection = connectToDb();
-
-    $stmt = mysqli_prepare($dbConnection, $query);
-    if (!mysqli_stmt_bind_param($stmt, $types, ...$params)) {
-        return "<h3>Erreur lors du binding de la requête...</h3>\n"
-            . "<div class=\"error\"><p>" . mysqli_stmt_error($stmt) . "</p></div>\n";
-    } else {
-        mysqli_stmt_execute($stmt);
-        $queryResults = mysqli_stmt_get_result($stmt);
-
-        return resultsToTable($queryResults);
-    }
+    return resultsToTable(parametrizedQueryResults($query, $types, ...$params));
 }
 
 /**
@@ -122,6 +126,28 @@ function columnToSelect(string $columnName, string $tableName): string
         return "No results";
 }
 
+function getPkColumnsName(string $tableName): string
+{
+    $dbConnection = connectToDb();
+
+    $tableName = mysqli_real_escape_string($dbConnection, $tableName);
+
+    $query = "select * from $tableName;";
+
+    $queryResults = mysqli_query($dbConnection, $query);
+
+    $pkName = "";
+    for ($i = 0; $i < mysqli_num_fields($queryResults); $i++)
+        if (mysqli_fetch_field_direct($queryResults, $i)->flags & MYSQLI_PRI_KEY_FLAG) {
+            if (empty($pkName))
+                $pkName .= mysqli_fetch_field_direct($queryResults, $i)->name;
+            else
+                $pkName .= " " . mysqli_fetch_field_direct($queryResults, $i)->name;
+        }
+
+    return $pkName;
+}
+
 /**
  * Generate HTML code to edit a mysql table
  * @param string $tableName name of the table in the database
@@ -146,12 +172,21 @@ function editTable(string $tableName): string
     $htmlCode .= "\t<th></th>\n";
     $htmlCode .= "</tr>\n\n";
 
-    $pkName = mysqli_fetch_field_direct($queryResults, 0)->name;
+    $pkName = getPkColumnsName($tableName);
+
     while ($row = mysqli_fetch_assoc($queryResults)) {
         $htmlCode .= "<tr>\n";
         foreach ($row as $data)
             $htmlCode .= "\t<td>$data</td>\n";
-        $pkValue = $row["$pkName"];
+
+        $pkValue = "";
+        foreach (explode(" ", $pkName) as $pkN) {
+            if (empty($pkValue))
+                $pkValue .= $row["$pkN"];
+            else
+                $pkValue .= " " . $row["$pkN"];
+        }
+
         $htmlCode .= <<<HEREDOC
     <td>
     <form action="resultatsSupprimer.php" method="post">
@@ -206,12 +241,16 @@ function editRecord(): string
     $dbConnection = connectToDb();
 
     $tableName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "tableName"));
-    $pkName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkName"));
-    $pkValue = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkValue"));
+    $pkName = explode(" ", mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkName")));
+    $pkValue = explode(" ", mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkValue")));
 
     $htmlCode = "";
 
-    $query = "select * from $tableName where $pkName = $pkValue;";
+    $query = "select * from $tableName where";
+    $query .= getQueryCondition($pkName, $pkValue) . ";";
+
+    print "Requête envoyée au serveur:<br><div class='query'><p>$query</p></div><br>\n";
+
     $queryResults = mysqli_query($dbConnection, $query);
 
     $row = mysqli_fetch_assoc($queryResults);
@@ -226,15 +265,13 @@ function editRecord(): string
     <dl>
 HEREDOC;
 
-    $isPk = 1;
     foreach ($row as $columnName => $data) {
-        if ($isPk == 1) {
+        if (in_array($columnName, $pkName)) {
             // Don't edit primary key
             $htmlCode .= <<<HEREDOC
             <dt>$columnName</dt>
             <dd>$data<input type = "hidden" name = "$columnName" value = "$data" /></dd>
 HEREDOC;
-            $isPk = 0;
         } else if (preg_match("/^NUMERO_(.*?)(?:_|$)/", $columnName, $match)) {
             $values = handleForeignKey($match[1], $columnName, $data);
             $htmlCode .= <<<HEREDOC
@@ -264,7 +301,7 @@ HEREDOC;
  * @param null $pkValue Optional parameter to pre-select a pk in the list
  * @return string HTML Code allowing representing a list of field
  */
-function handleForeignKey($tableNameSingular, $columnName = "", $pkValue = null): string
+function handleForeignKey(string $tableNameSingular, string $columnName = "", $pkValue = null): string
 {
     $correspondingForeignFieldName = "";
     $tableName = $tableNameSingular . "S";
@@ -320,39 +357,64 @@ function updateRecord(): string
     foreach ($_REQUEST as $fieldName => $data) {
         if ($fieldName == "tableName") {
             $tableName = $data;
+
         } else {
             array_push($columns, mysqli_real_escape_string($dbConnection, $fieldName));
             array_push($values, mysqli_real_escape_string($dbConnection, $data));
         }
     }
 
-    $pkName = $columns[0];
-    $pkValueToUpdate = $values[0];
+    $pkName = explode(" ", getPkColumnsName($tableName));
+    $pkValueToUpdate = array();
+    foreach ($pkName as $pkN)
+        array_push($pkValueToUpdate, $values[array_search($pkN, $columns)]);
 
     $query = "update $tableName set \n";
-    for ($i = 1; $i < count($columns); $i++)
-        $query .= ($values[$i] == 'null' || $values[$i] == '')
-            ? "$columns[$i] = null,\n" : "$columns[$i] = '$values[$i]',\n";
+    for ($i = 0; $i < count($columns); $i++)
+        if (!in_array($columns[$i], $pkName)) {
+            $query .= ($values[$i] == 'null' || $values[$i] == '')
+                ? "$columns[$i] = null,\n" : "$columns[$i] = '$values[$i]',\n";
+        }
 
     $query = substr($query, 0, strlen($query) - 2);  // remove trailing ",\n" from query
 
-    $query .= "\nwhere $pkName = '$pkValueToUpdate';";
+    $query .= "\nwhere";
+    $condition = getQueryCondition($pkName, $pkValueToUpdate);
+    $query .= $condition . ";";
 
     $htmlCode = "Requête envoyée au serveur:<br><div class='query'><p>$query</p></div><br>\n";
 
     $queryResults = mysqli_query($dbConnection, $query);
 
     if ($queryResults) {
-        $query = "select * from $tableName where $pkName = '$pkValueToUpdate'";
-        $htmlCode .= "<h1>Ligne modifiée avec succès</h1>\n";
-        $htmlCode .= "<h2>La ligne est maintenant:</h2>";
+        $htmlCode .= "<h2>Ligne modifiée avec succès</h2>\n";
+        $htmlCode .= "<h3>La ligne est maintenant:</h3>";
+        $query = "select * from $tableName where$condition";
         $htmlCode .= queryToTable($query);
     } else {
         $htmlCode .= "<h3>Erreur lors de la modification de la ligne...</h3><pre>$query</pre>\n";
-        $htmlCode .= "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";;
+        $htmlCode .= "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";
     }
 
     return $htmlCode;
+}
+
+/**
+ * @param $pkName
+ * @param array $pkValueToUpdate
+ * @return string
+ */
+function getQueryCondition($pkName, array $pkValueToUpdate): string
+{
+    $condition = "";
+    for ($i = 0; $i < count($pkName); $i++) {
+        if (empty($condition))
+            $condition .= " " . $pkName[$i] . " = " . $pkValueToUpdate[$i];
+        else
+            $condition .= " and " . $pkName[$i] . " = " . $pkValueToUpdate[$i];
+    }
+
+    return $condition;
 }
 
 /**
