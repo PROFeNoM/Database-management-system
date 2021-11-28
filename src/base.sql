@@ -149,15 +149,13 @@ alter table EMPRUNTS
     add constraint FK_STATION_DEPART_EMPRUNT
         foreign key (NUMERO_STATION_DEPART)
             references STATIONS (NUMERO_STATION)
-            on update cascade
-            on delete cascade;
+            on update cascade;
 
 alter table EMPRUNTS
     add constraint FK_STATION_ARRIVEE_EMPRUNT
         foreign key (NUMERO_STATION_ARRIVEE)
             references STATIONS (NUMERO_STATION)
-            on update cascade
-            on delete cascade;
+            on update cascade;
 
 alter table SEPARER
     add constraint FK_STATION_1_SEPARER
@@ -653,7 +651,6 @@ begin
 end;
 
 -- TODO: procedures to prevent duplication between triggers
--- TODO: When deleting a terminal, don't delete previous borrow
 -- TODO: Classement vélos par semaine
 
 -- ============================================================
