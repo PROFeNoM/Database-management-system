@@ -214,7 +214,7 @@ from
 union
 select
     count(*),
-    '=45 ?',
+    '=55 ?',
     'SEPARER'
 from
     SEPARER

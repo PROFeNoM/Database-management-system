@@ -182,15 +182,15 @@ create trigger EMPRUNTS_INSERT_STARTING_TERMINAL
     on EMPRUNTS
     for each row
 begin
-    if exists(select *
-              from
-                  VELOS V
-              where
-                    V.NUMERO_VELO = NEW.NUMERO_VELO
-                and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART)
+    if (NEW.HEURE_DEPOT is null and exists(select *
+                                           from
+                                               VELOS V
+                                           where
+                                                 V.NUMERO_VELO = NEW.NUMERO_VELO
+                                             and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART))
     then
         signal sqlstate '45000'
-            set message_text = 'Starting terminals don''t match ';
+            set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
     end if;
 end;
 
@@ -199,15 +199,15 @@ create trigger EMPRUNTS_UPDATE_STARTING_TERMINAL
     on EMPRUNTS
     for each row
 begin
-    if exists(select *
-              from
-                  VELOS V
-              where
-                    V.NUMERO_VELO = NEW.NUMERO_VELO
-                and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART)
+    if (NEW.HEURE_DEPOT is null and exists(select *
+                                           from
+                                               VELOS V
+                                           where
+                                                 V.NUMERO_VELO = NEW.NUMERO_VELO
+                                             and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART))
     then
         signal sqlstate '45000'
-            set message_text = 'Starting terminals don''t match ';
+            set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
     end if;
 end;
 
@@ -398,10 +398,12 @@ begin
               where
                     E.HEURE_EMPRUNT <= NEW.HEURE_EMPRUNT
                 and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT
-                and NEW.HEURE_DEPOT is not null)
+                and NEW.HEURE_DEPOT is not null
+                and NEW.NUMERO_VELO = E.NUMERO_VELO
+                and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT)
     then
         signal sqlstate '45000'
-            set message_text = 'Selected bike is already being used during this time frame.';
+            set message_text = 'Le vélo sélectionné n\'est pas disponible durant cette période';
     end if;
 end;
 
@@ -416,10 +418,12 @@ begin
               where
                     E.HEURE_EMPRUNT <= NEW.HEURE_EMPRUNT
                 and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT
-                and NEW.HEURE_DEPOT is not null)
+                and NEW.HEURE_DEPOT is not null
+                and NEW.NUMERO_VELO = E.NUMERO_VELO
+                and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT)
     then
         signal sqlstate '45000'
-            set message_text = 'Selected bike is already being used during this time frame.';
+            set message_text = 'Le vélo sélectionné n\'est pas disponible durant cette période';
     end if;
 end;
 
@@ -440,7 +444,7 @@ create trigger VELOS_UPDATE_STATIONS_LIMIT
     on VELOS
     for each row
 begin
-    if ((select count(*) from VELOS V where V.NUMERO_STATION = NEW.NUMERO_STATION) >
+    if ((select count(*) from VELOS V where V.NUMERO_STATION = NEW.NUMERO_STATION) + 1 >
         (select NOMBRE_BORNES from STATIONS S where S.NUMERO_STATION = NEW.NUMERO_STATION))
     then
         signal sqlstate '45000'
@@ -453,7 +457,7 @@ create trigger VELOS_INSERT_STATIONS_LIMIT
     on VELOS
     for each row
 begin
-    if ((select count(*) from VELOS V where V.NUMERO_STATION = NEW.NUMERO_STATION) >
+    if ((select count(*) from VELOS V where V.NUMERO_STATION = NEW.NUMERO_STATION) + 1 >
         (select NOMBRE_BORNES from STATIONS S where S.NUMERO_STATION = NEW.NUMERO_STATION))
     then
         signal sqlstate '45000'
@@ -542,7 +546,7 @@ begin
     if (OLD.NUMERO_STATION_1 = OLD.NUMERO_STATION_2)
     then
         signal sqlstate '45000'
-            set message_text = 'Interdiction de modifier cette entrée.';
+            set message_text = 'Interdiction de modifier cette entrée. La distance doit rester 0.';
     end if;
 end;
 
