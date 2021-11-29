@@ -180,12 +180,50 @@ create trigger EMPRUNTS_INSERT_STARTING_TERMINAL
     on EMPRUNTS
     for each row
 begin
-    if (NEW.HEURE_DEPOT is null and exists(select *
-                                           from
-                                               VELOS V
-                                           where
-                                                 V.NUMERO_VELO = NEW.NUMERO_VELO
-                                             and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART))
+    -- If there's a bike before the new record, check if the new record's starting point is ok
+    if (exists(select *
+               from
+                   EMPRUNTS E
+               where
+                     E.NUMERO_VELO = NEW.NUMERO_VELO
+                 and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
+                     cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME))
+        and (select
+                 E.NUMERO_STATION_ARRIVEE
+             from
+                 EMPRUNTS E
+             where
+                   E.NUMERO_VELO = NEW.NUMERO_VELO
+               and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
+                   cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+             order by
+                 cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) desc
+             limit 1) != NEW.NUMERO_STATION_DEPART)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
+    end if;
+
+    -- If there's a bike after the new record, check if the new record's ending point is ok
+    if (exists(select *
+               from
+                   EMPRUNTS E
+               where
+                     E.NUMERO_VELO = NEW.NUMERO_VELO
+                 and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
+                     cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+            )
+        and (select
+                 E.NUMERO_STATION_DEPART
+             from
+                 EMPRUNTS E
+             where
+                   E.NUMERO_VELO = NEW.NUMERO_VELO
+               and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
+                   cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+             order by
+                 cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) asc
+             limit 1) != NEW.NUMERO_STATION_ARRIVEE)
     then
         signal sqlstate '45000'
             set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
@@ -197,12 +235,50 @@ create trigger EMPRUNTS_UPDATE_STARTING_TERMINAL
     on EMPRUNTS
     for each row
 begin
-    if (NEW.HEURE_DEPOT is null and exists(select *
-                                           from
-                                               VELOS V
-                                           where
-                                                 V.NUMERO_VELO = NEW.NUMERO_VELO
-                                             and V.NUMERO_STATION != NEW.NUMERO_STATION_DEPART))
+    -- If there's a bike before the new record, check if the new record's starting point is ok
+    if (exists(select *
+               from
+                   EMPRUNTS E
+               where
+                     E.NUMERO_VELO = NEW.NUMERO_VELO
+                 and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
+                     cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME))
+        and (select
+                 E.NUMERO_STATION_ARRIVEE
+             from
+                 EMPRUNTS E
+             where
+                   E.NUMERO_VELO = NEW.NUMERO_VELO
+               and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
+                   cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+             order by
+                 cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) desc
+             limit 1) != NEW.NUMERO_STATION_DEPART)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
+    end if;
+
+    -- If there's a bike after the new record, check if the new record's ending point is ok
+    if (exists(select *
+               from
+                   EMPRUNTS E
+               where
+                     E.NUMERO_VELO = NEW.NUMERO_VELO
+                 and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
+                     cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+            )
+        and (select
+                 E.NUMERO_STATION_DEPART
+             from
+                 EMPRUNTS E
+             where
+                   E.NUMERO_VELO = NEW.NUMERO_VELO
+               and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
+                   cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+             order by
+                 cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) asc
+             limit 1) != NEW.NUMERO_STATION_ARRIVEE)
     then
         signal sqlstate '45000'
             set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
@@ -217,7 +293,7 @@ begin
     if NEW.NIVEAU_CHARGE_BATTERIE > 100 or NEW.NIVEAU_CHARGE_BATTERIE < 0
     then
         signal sqlstate '45000'
-            set message_text = 'Please insert a battery level between 0 and 100 inclusive';
+            set message_text = 'Le niveau de charge de la batterie doit être en 0 et 100.';
     end if;
 end;
 
@@ -229,7 +305,7 @@ begin
     if NEW.NIVEAU_CHARGE_BATTERIE > 100 or NEW.NIVEAU_CHARGE_BATTERIE < 0
     then
         signal sqlstate '45000'
-            set message_text = 'Please insert a battery level between 0 and 100 inclusive';
+            set message_text = 'Le niveau de charge de la batterie doit être en 0 et 100.';
     end if;
 end;
 
@@ -241,7 +317,7 @@ begin
     if NEW.NOMBRE_BORNES < 0
     then
         signal sqlstate '45000'
-            set message_text = 'Please insert a positive number of terminal';
+            set message_text = 'Le nombre de bornes doit être positif.';
     end if;
 end;
 
@@ -253,7 +329,7 @@ begin
     if NEW.NOMBRE_BORNES < 0
     then
         signal sqlstate '45000'
-            set message_text = 'Please insert a positive number of terminal';
+            set message_text = 'Le nombre de bornes doit être positif';
     end if;
 end;
 
@@ -270,10 +346,10 @@ begin
                 and V.NUMERO_VELO = NEW.NUMERO_VELO)
     then
         signal sqlstate '45000'
-            set message_text = 'The selected bike isn''t available for now.';
+            set message_text = 'Le vélo sélectionné est en cours d\'utilisation';
     end if;
 end;
-/*
+
 create trigger EMPRUNTS_UPDATE_CHECK_AVAILABLE
     before update
     on EMPRUNTS
@@ -281,16 +357,17 @@ create trigger EMPRUNTS_UPDATE_CHECK_AVAILABLE
 begin
     if exists(select *
               from
-                  VELOS V
+                  EMPRUNTS E
               where
-                    V.NUMERO_STATION is null
-                and V.NUMERO_VELO = NEW.NUMERO_VELO)
+                    E.HEURE_DEPOT is null
+                and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
+                and E.NUMERO_VELO = NEW.NUMERO_VELO)
     then
         signal sqlstate '45000'
-            set message_text = 'The selected bike isn''t available for now.';
+            set message_text = 'Le vélo sélectionné est en cours d\'utilisation';
     end if;
 end;
-*/
+
 create trigger EMPRUNTS_INSERT_TAKE_BIKE
     before insert
     on EMPRUNTS
@@ -340,10 +417,11 @@ create trigger EMPRUNTS_INSERT_CHECK_HOURS
     on EMPRUNTS
     for each row
 begin
-    if (NEW.HEURE_DEPOT < NEW.HEURE_EMPRUNT)
+    if ((NEW.DATE_DEPOT < NEW.DATE_EMPRUNT) or
+        (NEW.HEURE_DEPOT < NEW.HEURE_EMPRUNT and NEW.DATE_EMPRUNT = NEW.DATE_DEPOT))
     then
         signal sqlstate '45000'
-            set message_text = 'The deposit time must be later than the borrowing time';
+            set message_text = 'Le dépôt doit s\'effectuer après l\'emprunt';
     end if;
 end;
 
@@ -352,10 +430,11 @@ create trigger EMPRUNTS_UPDATE_CHECK_HOURS
     on EMPRUNTS
     for each row
 begin
-    if (NEW.HEURE_DEPOT < NEW.HEURE_EMPRUNT)
+    if ((NEW.DATE_DEPOT < NEW.DATE_EMPRUNT) or
+        (NEW.HEURE_DEPOT < NEW.HEURE_EMPRUNT and NEW.DATE_EMPRUNT = NEW.DATE_DEPOT))
     then
         signal sqlstate '45000'
-            set message_text = 'The deposit time must be later than the borrowing time';
+            set message_text = 'Le dépôt doit s\'effectuer après l\'emprunt';
     end if;
 end;
 
@@ -364,11 +443,12 @@ create trigger EMPRUNTS_INSERT_MATCHING_AVAILABILITY
     on EMPRUNTS
     for each row
 begin
-    if ((NEW.HEURE_DEPOT is null and NEW.NUMERO_STATION_ARRIVEE is not null)
-        or (NEW.HEURE_DEPOT is not null and NEW.NUMERO_STATION_ARRIVEE is null))
+    if ((NEW.HEURE_DEPOT is null and not (NEW.NUMERO_STATION_ARRIVEE is null and NEW.DATE_DEPOT is null))
+        or (NEW.DATE_DEPOT is null and not (NEW.NUMERO_STATION_ARRIVEE is null and NEW.HEURE_DEPOT is null))
+        or (NEW.NUMERO_STATION_ARRIVEE is null and not (NEW.HEURE_DEPOT is null and NEW.DATE_DEPOT is null)))
     then
         signal sqlstate '45000'
-            set message_text = 'HEURE_DEPOT doesn''t match NUMERO_STATION_ARRIVEE';
+            set message_text = 'HEURE_DEPOT, NUMERO_STATION_ARRIVEE and DATE_DEPOT don\'t match';
     end if;
 end;
 
@@ -377,11 +457,12 @@ create trigger EMPRUNTS_UPDATE_MATCHING_AVAILABILITY
     on EMPRUNTS
     for each row
 begin
-    if ((NEW.HEURE_DEPOT is null and NEW.NUMERO_STATION_ARRIVEE is not null)
-        or (NEW.HEURE_DEPOT is not null and NEW.NUMERO_STATION_ARRIVEE is null))
+    if ((NEW.HEURE_DEPOT is null and not (NEW.NUMERO_STATION_ARRIVEE is null and NEW.DATE_DEPOT is null))
+        or (NEW.DATE_DEPOT is null and not (NEW.NUMERO_STATION_ARRIVEE is null and NEW.HEURE_DEPOT is null))
+        or (NEW.NUMERO_STATION_ARRIVEE is null and not (NEW.HEURE_DEPOT is null and NEW.DATE_DEPOT is null)))
     then
         signal sqlstate '45000'
-            set message_text = 'HEURE_DEPOT doesn''t match NUMERO_STATION_ARRIVEE';
+            set message_text = 'HEURE_DEPOT, NUMERO_STATION_ARRIVEE and DATE_DEPOT don\'t match';
     end if;
 end;
 
@@ -394,11 +475,12 @@ begin
               from
                   EMPRUNTS E
               where
-                    E.HEURE_EMPRUNT <= NEW.HEURE_EMPRUNT
-                and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT
-                and NEW.HEURE_DEPOT is not null
-                and NEW.NUMERO_VELO = E.NUMERO_VELO
-                and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT)
+                    NEW.NUMERO_VELO = E.NUMERO_VELO
+                and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
+                    cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
+                    cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+        )
     then
         signal sqlstate '45000'
             set message_text = 'Le vélo sélectionné n\'est pas disponible durant cette période';
@@ -414,14 +496,38 @@ begin
               from
                   EMPRUNTS E
               where
-                    E.HEURE_EMPRUNT <= NEW.HEURE_EMPRUNT
-                and NEW.HEURE_EMPRUNT <= E.HEURE_DEPOT
-                and NEW.HEURE_DEPOT is not null
-                and NEW.NUMERO_VELO = E.NUMERO_VELO
-                and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT)
+                    NEW.NUMERO_VELO = E.NUMERO_VELO
+                and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
+                and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
+                    cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
+                    cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+        )
     then
         signal sqlstate '45000'
             set message_text = 'Le vélo sélectionné n\'est pas disponible durant cette période';
+    end if;
+end;
+
+create trigger EMPRUNTS_INSERT_CHECK_USER_AVAILABILITY
+    before insert
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  EMPRUNTS E
+              where
+                    E.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT
+                and E.NUMERO_EMPRUNT != NEW.NUMERO_ADHERENT
+                and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
+                    cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
+                    cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+        )
+    then
+        signal sqlstate '45000'
+            set message_text = 'L\'adhérent sélectionné n\'est pas disponible durant cette période';
     end if;
 end;
 
@@ -492,7 +598,8 @@ create trigger EMPRUNTS_UPDATE_IS_USER_CREATED
     on EMPRUNTS
     for each row
 begin
-    if ((select A.DATE_INSCRIPTION from ADHERENTS A where A.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT) > NEW.DATE_EMPRUNT)
+    if ((select A.DATE_INSCRIPTION from ADHERENTS A where A.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT) >
+        NEW.DATE_EMPRUNT)
     then
         signal sqlstate '45000'
             set message_text = 'La date d\'inscription doit être antérieure à la date d\'emprunt';
@@ -504,7 +611,8 @@ create trigger EMPRUNTS_INSERT_IS_USER_CREATED
     on EMPRUNTS
     for each row
 begin
-    if ((select A.DATE_INSCRIPTION from ADHERENTS A where A.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT) > NEW.DATE_EMPRUNT)
+    if ((select A.DATE_INSCRIPTION from ADHERENTS A where A.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT) >
+        NEW.DATE_EMPRUNT)
     then
         signal sqlstate '45000'
             set message_text = 'La date d\'inscription doit être antérieure à la date d\'emprunt';
@@ -545,6 +653,18 @@ begin
     then
         signal sqlstate '45000'
             set message_text = 'Interdiction de modifier cette entrée. La distance doit rester 0.';
+    end if;
+end;
+
+create trigger SEPARER_DELETE_SAME_STATION
+    before delete
+    on SEPARER
+    for each row
+begin
+    if (OLD.NUMERO_STATION_1 = OLD.NUMERO_STATION_2)
+    then
+        signal sqlstate '45000'
+            set message_text = 'Interdiction de supprimer cette entrée. La distance doit rester 0.';
     end if;
 end;
 

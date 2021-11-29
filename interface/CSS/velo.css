@@ -106,6 +106,10 @@ hr::before {
     background-color: lightgray;
 }
 
+.addToTable {
+    background-color: lightgray;
+}
+
 .add {
     background-color: darkgrey;
 }

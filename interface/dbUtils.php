@@ -433,7 +433,7 @@ function addToTable(): string
 
     $htmlCode = <<<HEREDOC
     <form action="resultatsAjout.php" method="post">
-        <fieldset>
+        <fieldset class="addToTable">
         <dl>
 HEREDOC;
 
@@ -530,10 +530,10 @@ function deleteRecord(): string
     $dbConnection = connectToDb();
 
     $tableName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "tableName"));
-    $pkName = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkName"));
-    $pkValue = mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkValue"));
+    $pkName = explode(" ", mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkName")));
+    $pkValue = explode(" ", mysqli_real_escape_string($dbConnection, filter_input(INPUT_POST, "pkValue")));
 
-    $query = "delete from $tableName where $pkName = '$pkValue'";
+    $query = "delete from $tableName where" . getQueryCondition($pkName, $pkValue);
     $htmlCode = "Requête envoyée au serveur:<br><div class=\"query\"><p>$query</p></div><br>\n";
 
     $queryResults = mysqli_query($dbConnection, $query);
