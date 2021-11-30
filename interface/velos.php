@@ -57,6 +57,16 @@ print queryToTable($query);
 <!-- END USAGERS VELOS JOUR -->
 <hr>
 
+<!-- START USAGERS VELOS SEMAINE -->
+<h2>Nombre d’usagers par vélo par semaine</h2>
+
+<?php
+$query = file_get_contents(__DIR__ . '/../requetes/kilometrageVelosParSemaine.sql');
+print queryToTable($query);
+?>
+<!-- END USAGERS VELOS SEMAINE -->
+<hr>
+
 <!-- START CHERCHER VELOS DANS STATION -->
 <h2>Liste des vélos par station</h2>
 

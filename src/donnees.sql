@@ -161,8 +161,8 @@ commit;
 insert into VELOS values (1, '12139990003', '2020-12-03', 'Gitane', 83, 1, 3);
 insert into VELOS values (2, '12139990004', '2020-12-03', 'Gitane', 99, 2, 1);
 insert into VELOS values (3, '12139990005', '2020-12-03', 'Gitane', 87, 1, 3);
-insert into VELOS values (4, '12139990006', '2020-12-03', 'Gitane', 36, 3, null);
-insert into VELOS values (5, '12139990007', '2020-12-04', 'Gitane', 87, 3, null);
+insert into VELOS values (4, '12139990006', '2020-12-03', 'Gitane', 36, 3, 2);
+insert into VELOS values (5, '12139990007', '2020-12-04', 'Gitane', 87, 3, 3);
 insert into VELOS values (6, '12139990008', '2020-12-04', 'Gitane', 13, 2, 8);
 insert into VELOS values (7, '12139990009', '2020-12-04', 'Gitane', 24, 2, 9);
 insert into VELOS values (8, '12139990010', '2020-12-04', 'Gitane', 24, 2, 9);
@@ -173,11 +173,30 @@ commit;
 
 -- EMPRUNTS
 
+-- week 49
 insert into EMPRUNTS values (1, '2020-12-05', '12:56:32', '2020-12-05', '13:23:34', 1, 2, 3, 1);
-insert into EMPRUNTS values (2, '2020-12-05', '13:56:32', '2020-12-05', '14:23:34', 1, 2, 1, 3);
-insert into EMPRUNTS values (3, '2020-12-05', '15:56:32', '2020-12-05', '16:23:34', 1, 2, 3, 1);
+insert into EMPRUNTS values (2, '2020-12-05', '13:56:32', '2020-12-05', '14:23:34', 1, 3, 1, 3);
+insert into EMPRUNTS values (3, '2020-12-05', '15:56:32', '2020-12-05', '16:23:34', 1, 4, 3, 1);
 insert into EMPRUNTS values (4, '2020-12-05', '13:43:01', '2020-12-05', '13:59:01', 6, 3, 8, 4);
-insert into EMPRUNTS values (5, '2020-12-05', '23:43:01', null, null, 6, 3, 4, null);
+insert into EMPRUNTS values (5, '2020-12-05', '23:43:01', null, null, 5, 4, 3, null);
+insert into EMPRUNTS values (6, '2020-12-06', '14:57:42', '2020-12-06', '15:24:52', 4, 5, 2, 10);
+insert into EMPRUNTS values (7, '2020-12-06', '16:57:42', '2020-12-06', '17:24:52', 1, 5, 1, 2);
+-- week 50
+insert into EMPRUNTS values (8, '2020-12-07', '12:56:32', '2020-12-07', '13:23:34', 1, 2, 2, 9);
+insert into EMPRUNTS values (9, '2020-12-07', '13:56:32', '2020-12-07', '14:23:34', 2, 2, 9, 8);
+insert into EMPRUNTS values (10, '2020-12-08', '15:56:32', '2020-12-08', '16:23:34', 4, 2, 10, 4);
+insert into EMPRUNTS values (11, '2020-12-08', '13:43:01', '2020-12-08', '13:59:01', 6, 3, 4, 8);
+insert into EMPRUNTS values (12, '2020-12-09', '23:43:01', null, null, 8, 4, 9, null);
+insert into EMPRUNTS values (13, '2020-12-10', '14:57:42', '2020-12-10', '15:24:52', 4, 5, 4, 10);
+insert into EMPRUNTS values (14, '2020-12-10', '16:57:42', '2020-12-10', '17:24:52', 1, 5, 9, 1);
+-- week 51
+insert into EMPRUNTS values (15, '2020-12-17', '12:56:32', '2020-12-17', '13:23:34', 1, 2, 1, 10);
+insert into EMPRUNTS values (16, '2020-12-17', '13:56:32', '2020-12-17', '14:23:34', 2, 2, 8, 10);
+insert into EMPRUNTS values (17, '2020-12-18', '15:56:32', '2020-12-18', '16:23:34', 4, 2, 10, 10);
+insert into EMPRUNTS values (18, '2020-12-18', '13:43:01', '2020-12-18', '13:59:01', 6, 3, 8, 10);
+insert into EMPRUNTS values (19, '2020-12-19', '23:43:01', null, null, 9, 6, 10, null);
+insert into EMPRUNTS values (20, '2020-12-20', '14:57:42', '2020-12-20', '15:24:52', 4, 5, 10, 10);
+insert into EMPRUNTS values (21, '2020-12-20', '16:57:42', '2020-12-21', '00:24:52', 1, 5, 10, 10);
 
 commit;
 
@@ -228,7 +247,7 @@ from
 union
 select
     count(*),
-    '=5 ?',
+    '=21 ?',
     'EMPRUNTS'
 from
     EMPRUNTS;

@@ -771,7 +771,7 @@ begin
 end;
 
 -- TODO: procedures to prevent duplication between triggers
--- TODO: Classement vélos par semaine
+-- TODO: There's an issue (can't be solved) with kilometrageVelosParSemaine.sql where km = 0 when a VELOS goes from one STATIONS to the same one
 
 -- ============================================================
 --   Utilisateur de la base de données
