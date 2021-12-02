@@ -3,18 +3,117 @@
 -- ============================================================
 
 -- Kilométrage des vélos par semaine
-select * from KILOMETRAGEVELOSPARSEMAINE;
+select
+    NUMERO_VELO,
+    REFERENCE,
+    DATE_MISE_EN_SERVICE,
+    MARQUE,
+    NIVEAU_CHARGE_BATTERIE,
+    NUMERO_ETAT,
+    NUMERO_STATION,
+    sum(KM) AS KILOMETRAGE
+from
+    (select
+         V.*,
+         sum(S.DISTANCE) as KM
+     from
+         VELOS V
+             inner join EMPRUNTS E
+                        on V.NUMERO_VELO = E.NUMERO_VELO
+             inner join SEPARER S
+                        on S.NUMERO_STATION_1 = E.NUMERO_STATION_DEPART and S.NUMERO_STATION_2 = E.NUMERO_STATION_ARRIVEE
+     group by V.NUMERO_VELO
+     union
+     select
+         V.*,
+         sum(S.DISTANCE) as KM
+     from
+         VELOS V
+             inner join EMPRUNTS E
+                        on V.NUMERO_VELO = E.NUMERO_VELO
+             inner join SEPARER S
+                        on S.NUMERO_STATION_2 = E.NUMERO_STATION_DEPART and S.NUMERO_STATION_1 = E.NUMERO_STATION_ARRIVEE
+     group by V.NUMERO_VELO) Q
+group by
+    NUMERO_VELO,
+    REFERENCE,
+    DATE_MISE_EN_SERVICE,
+    MARQUE,
+    NIVEAU_CHARGE_BATTERIE,
+    NUMERO_ETAT,
+    NUMERO_STATION
+order by
+    NUMERO_VELO;
 
 -- Kilométrage des vélos
-select * from KILOMETRAGEPARVELO;
+
+select
+    NUMERO_VELO,
+    REFERENCE,
+    DATE_MISE_EN_SERVICE,
+    MARQUE,
+    NIVEAU_CHARGE_BATTERIE,
+    NUMERO_ETAT,
+    NUMERO_STATION,
+    sum(KM) AS KILOMETRAGE
+from
+    (select
+         V.*,
+         sum(S.DISTANCE) as KM
+     from
+         VELOS V
+             inner join EMPRUNTS E
+                        on V.NUMERO_VELO = E.NUMERO_VELO
+             inner join SEPARER S
+                        on S.NUMERO_STATION_1 = E.NUMERO_STATION_DEPART and S.NUMERO_STATION_2 = E.NUMERO_STATION_ARRIVEE
+     group by V.NUMERO_VELO
+     union
+     select
+         V.*,
+         sum(S.DISTANCE) as KM
+     from
+         VELOS V
+             inner join EMPRUNTS E
+                        on V.NUMERO_VELO = E.NUMERO_VELO
+             inner join SEPARER S
+                        on S.NUMERO_STATION_2 = E.NUMERO_STATION_DEPART and S.NUMERO_STATION_1 = E.NUMERO_STATION_ARRIVEE
+     group by V.NUMERO_VELO) Q
+group by
+    NUMERO_VELO,
+    REFERENCE,
+    DATE_MISE_EN_SERVICE,
+    MARQUE,
+    NIVEAU_CHARGE_BATTERIE,
+    NUMERO_ETAT,
+    NUMERO_STATION
+order by
+    NUMERO_VELO;
 
 -- Nombre d'usagers par velos par jour
 
-select * from NOMBREUSAGERSVELOSPARJOUR;
+select
+    E.DATE_EMPRUNT DATE,
+    V.REFERENCE,
+    count(distinct E.NUMERO_ADHERENT) NOMBRE_USAGERS
+from
+    ADHERENTS A
+        inner join EMPRUNTS E
+                   on A.NUMERO_ADHERENT = E.NUMERO_ADHERENT
+        inner join VELOS V
+                   on E.NUMERO_VELO = V.NUMERO_VELO
+group by
+    E.DATE_EMPRUNT,
+    V.REFERENCE
+order by
+    E.DATE_EMPRUNT;
 
 -- Listes des vélos en cours d'utilisation
 
-select * from VELOSENCOURSUTILISATION;
+select *
+from
+    VELOS
+where
+    NUMERO_STATION is null;
 
 -- ============================================================
 --    requêtes paramétrables
