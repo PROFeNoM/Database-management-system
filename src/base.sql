@@ -175,6 +175,8 @@ alter table SEPARER
 --   Triggers
 -- ============================================================
 
+
+DELIMITER //
 create trigger EMPRUNTS_INSERT_STARTING_TERMINAL
     before insert
     on EMPRUNTS
@@ -228,7 +230,10 @@ begin
         signal sqlstate '45000'
             set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
     end if;
-end;
+end //
+
+DELIMITER //
+
 
 create trigger EMPRUNTS_UPDATE_STARTING_TERMINAL
     before update
@@ -283,8 +288,11 @@ begin
         signal sqlstate '45000'
             set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
     end if;
-end;
+end //
 
+
+
+DELIMITER //
 create trigger VELOS_INSERT_BATTERY_CHECK
     before insert
     on VELOS
@@ -295,8 +303,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le niveau de charge de la batterie doit être en 0 et 100.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger VELOS_UPDATE_BATTERY_CHECK
     before update
     on VELOS
@@ -307,8 +316,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le niveau de charge de la batterie doit être en 0 et 100.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger STATIONS_INSERT_CHECK_BORNES
     before insert
     on STATIONS
@@ -319,8 +329,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le nombre de bornes doit être positif.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger STATIONS_UPDATE_CHECK_BORNES
     before update
     on STATIONS
@@ -331,8 +342,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le nombre de bornes doit être positif';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_CHECK_AVAILABLE
     before insert
     on EMPRUNTS
@@ -348,8 +360,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le vélo sélectionné est en cours d\'utilisation';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_UPDATE_CHECK_AVAILABLE
     before update
     on EMPRUNTS
@@ -366,8 +379,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le vélo sélectionné est en cours d\'utilisation';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_TAKE_BIKE
     before insert
     on EMPRUNTS
@@ -377,8 +391,9 @@ begin
     then
         update VELOS set NUMERO_STATION = null where NUMERO_VELO = NEW.NUMERO_VELO;
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_UPDATE_TAKE_BIKE
     before update
     on EMPRUNTS
@@ -388,8 +403,9 @@ begin
     then
         update VELOS set NUMERO_STATION = null where NUMERO_VELO = NEW.NUMERO_VELO;
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_RELEASE_BIKE
     before insert
     on EMPRUNTS
@@ -399,8 +415,9 @@ begin
     then
         update VELOS set NUMERO_STATION = NEW.NUMERO_STATION_ARRIVEE where NUMERO_VELO = NEW.NUMERO_VELO;
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_UPDATE_RELEASE_BIKE
     before update
     on EMPRUNTS
@@ -410,8 +427,9 @@ begin
     then
         update VELOS set NUMERO_STATION = NEW.NUMERO_STATION_ARRIVEE where NUMERO_VELO = NEW.NUMERO_VELO;
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_CHECK_HOURS
     before insert
     on EMPRUNTS
@@ -423,8 +441,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le dépôt doit s\'effectuer après l\'emprunt';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_UPDATE_CHECK_HOURS
     before update
     on EMPRUNTS
@@ -436,8 +455,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le dépôt doit s\'effectuer après l\'emprunt';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_MATCHING_AVAILABILITY
     before insert
     on EMPRUNTS
@@ -450,8 +470,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'HEURE_DEPOT, NUMERO_STATION_ARRIVEE and DATE_DEPOT don\'t match';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_UPDATE_MATCHING_AVAILABILITY
     before update
     on EMPRUNTS
@@ -464,8 +485,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'HEURE_DEPOT, NUMERO_STATION_ARRIVEE and DATE_DEPOT don\'t match';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_BETWEEN_TIMES
     before insert
     on EMPRUNTS
@@ -485,8 +507,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le vélo sélectionné n\'est pas disponible durant cette période';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_UPDATE_BETWEEN_TIMES
     before update
     on EMPRUNTS
@@ -507,8 +530,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le vélo sélectionné n\'est pas disponible durant cette période';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_CHECK_USER_AVAILABILITY
     before insert
     on EMPRUNTS
@@ -529,8 +553,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'L\'adhérent sélectionné n\'est pas disponible durant cette période';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger STATIONS_UPDATE_BIKE_LIMIT
     before update
     on STATIONS
@@ -541,8 +566,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le nombre de vélos à la station dépasse la capacité disponible.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger VELOS_UPDATE_STATIONS_LIMIT
     before update
     on VELOS
@@ -554,8 +580,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le nombre de vélos à la station dépasse la capacité disponible.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger VELOS_INSERT_STATIONS_LIMIT
     before insert
     on VELOS
@@ -567,8 +594,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Le nombre de vélos à la station dépasse la capacité disponible.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger SEPARER_UPDATE_DISTANCE_POSITIVE
     before update
     on SEPARER
@@ -579,8 +607,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'La distance séparant deux stations doit être positive ou nulle.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger SEPARER_INSERT_DISTANCE_POSITIVE
     before insert
     on SEPARER
@@ -591,8 +620,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'La distance séparant deux stations doit être positive ou nulle.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_UPDATE_IS_USER_CREATED
     before update
     on EMPRUNTS
@@ -604,8 +634,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'La date d\'inscription doit être antérieure à la date d\'emprunt';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_IS_USER_CREATED
     before insert
     on EMPRUNTS
@@ -617,8 +648,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'La date d\'inscription doit être antérieure à la date d\'emprunt';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger ADHERENTS_UPDATE_CHECK_DATES
     before update
     on ADHERENTS
@@ -634,16 +666,18 @@ begin
         signal sqlstate '45000'
             set message_text = 'La date d\'inscription doit être antérieure à la date d\'emprunt';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger STATIONS_INSERT_CREATE_SEPARER_DISTANCE
     after insert
     on STATIONS
     for each row
 begin
     insert into SEPARER values (NEW.NUMERO_STATION, NEW.NUMERO_STATION, 0);
-end;
+end //
 
+DELIMITER //
 create trigger SEPARER_UPDATE_SAME_STATION
     before update
     on SEPARER
@@ -654,8 +688,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Interdiction de modifier cette entrée. La distance doit rester 0.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger SEPARER_DELETE_SAME_STATION
     before delete
     on SEPARER
@@ -666,8 +701,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'Interdiction de supprimer cette entrée. La distance doit rester 0.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_DELETE_BIKE_IN_USE
     after delete
     on EMPRUNTS
@@ -677,8 +713,9 @@ begin
     then
         delete from VELOS where VELOS.NUMERO_VELO = OLD.NUMERO_VELO;
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger ETATS_DELETE_EXISTS_IN_VELOS
     before delete
     on ETATS
@@ -693,8 +730,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'L\'etat est toujours utilisé par un vélos.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger VILLES_DELETE_USED_ADHERENTS
     before delete
     on VILLES
@@ -705,8 +743,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'La ville est toujours utilisée par un adhérent.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger VILLES_DELETE_USED_STATIONS
     before delete
     on VILLES
@@ -717,8 +756,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'La ville est toujours utilisée par une station.';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_UPDATE_DATES_MISE_EN_SERVICE
     before update
     on EMPRUNTS
@@ -734,8 +774,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'La date de mise en service doit être antérieure à celle d\'emprunt';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger EMPRUNTS_INSERT_DATES_MISE_EN_SERVICE
     before insert
     on EMPRUNTS
@@ -751,8 +792,9 @@ begin
         signal sqlstate '45000'
             set message_text = 'La date de mise en service doit être antérieure à celle d\'emprunt';
     end if;
-end;
+end //
 
+DELIMITER //
 create trigger VELOS_UPDATE_DATE_MISE_EN_SERVICE
     before update
     on VELOS
@@ -768,7 +810,7 @@ begin
         signal sqlstate '45000'
             set message_text = 'La date de mise en service doit être antérieure à celle d\'emprunt';
     end if;
-end;
+end //
 
 -- TODO: procedures to prevent duplication between triggers
 -- TODO: There's an issue (can't be solved) with kilometrageVelosParSemaine.sql where km = 0 when a VELOS goes from one STATIONS to the same one

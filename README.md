@@ -1,3 +1,16 @@
+=== PROJET SGBD FLOTTE VELO ==
+
+CHOURA  Alexandre
+ROGER   Gaëtan
+BAUCHER Edgar
+
+=== INSTALLER LES PACKAGES REQUIS ===
+
+mysql (v8.0)
+php (v7.4)
+php-mysql
+php-cgi
+
 === POUR LANCER LE PROJET: ==
 
 1 - Lance la base sql:
@@ -18,4 +31,4 @@ Une page firefox s'ouvre et la base de données y est accessible.
 
 === POUR FERMER LE PRJET: ===
 
-Fermer les terminaux utilisés (sql et serveur).
+Fermer les terminaux utilisés (sql et serveur).	
