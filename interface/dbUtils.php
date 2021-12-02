@@ -148,6 +148,28 @@ function getPkColumnsName(string $tableName): string
     return $pkName;
 }
 
+function getFkColumnsName(string $tableName): string
+{
+    $dbConnection = connectToDb();
+
+    $tableName = mysqli_real_escape_string($dbConnection, $tableName);
+
+    $query = "select COLUMN_NAME from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '$tableName' and TABLE_SCHEMA = 'VELO' and CONSTRAINT_NAME like 'FK_%';";
+
+    $queryResults = mysqli_query($dbConnection, $query);
+
+    $fkName = "";
+
+    while ($row = mysqli_fetch_assoc($queryResults)) {
+        if (empty($fkName))
+            $fkName .= $row["COLUMN_NAME"];
+        else
+            $fkName .= " " . $row["COLUMN_NAME"];
+    }
+
+    return $fkName;
+}
+
 /**
  * Generate HTML code to edit a mysql table
  * @param string $tableName name of the table in the database
@@ -265,6 +287,8 @@ function editRecord(): string
     <dl>
 HEREDOC;
 
+    $fkName = explode(" ", getFkColumnsName($tableName));
+
     foreach ($row as $columnName => $data) {
         if (in_array($columnName, $pkName)) {
             // Don't edit primary key
@@ -272,7 +296,8 @@ HEREDOC;
             <dt>$columnName</dt>
             <dd>$data<input type = "hidden" name = "$columnName" value = "$data" /></dd>
 HEREDOC;
-        } else if (preg_match("/^NUMERO_(.*?)(?:_|$)/", $columnName, $match)) {
+        } else if (in_array($columnName, $fkName)) {
+            preg_match("/^NUMERO_(.*?)(?:_|$)/", $columnName, $match);
             $values = handleForeignKey($match[1], $columnName, $data);
             $htmlCode .= <<<HEREDOC
             <dt>$columnName</dt>
@@ -437,17 +462,19 @@ function addToTable(): string
         <dl>
 HEREDOC;
 
-    $isPk = 1;
+    $fkName = explode(" ", getFkColumnsName($tableName));
+    $pkName = explode(" ", getPkColumnsName($tableName));
+
     while ($field = mysqli_fetch_field($queryResults)) {
         $columnName = $field->name;
-        if ($isPk == 1) {
+        if (in_array($columnName, $pkName) && !in_array($columnName, $fkName)) {
             // Primary key will be automatically incremented
             $htmlCode .= <<<HEREDOC
             <dt>$columnName</dt>
             <dd>auto_number<input type="hidden" name="$columnName" value="null" ></dd>    
 HEREDOC;
-            $isPk = 0;
-        } else if (preg_match("/^NUMERO_(.*?)(?:_|$)/", $columnName, $match)) {
+        } else if (in_array($columnName, $fkName)) {
+            preg_match("/^NUMERO_(.*?)(?:_|$)/", $columnName, $match);
             $values = handleForeignKey($match[1], $columnName);
             $htmlCode .= <<<HEREDOC
             <dt>$columnName</dt>
@@ -489,16 +516,28 @@ function addRecord(): string
             $values[] = mysqli_real_escape_string($dbConnection, $data);
         }
     }
+    $pkName = explode(" ", getPkColumnsName($tableName));
+    $fkName = explode(" ", getFkColumnsName($tableName));
 
-    array_shift($columnsName);  // Remove pk field; should be auto incremented
+    $indices = array();
+
     $query = "insert into $tableName (";
-    foreach ($columnsName as $column)
-        $query .= "$column, ";
+    $i = 0;
+    foreach ($columnsName as $column) {
+        if (!in_array($column, $pkName) || in_array($column, $fkName))
+            $query .= "$column, ";
+        else
+            array_push($indices, $i);
+        $i++;
+    }
 
-    array_shift($values);  // Remove pk field; should be auto incremented
     $query = substr($query, 0, strlen($query) - 2);  // Delete trailing ", "
+
     $query .= ") values (";
+    $i = 0;
     foreach ($values as $data) {
+        if (in_array($i++, $indices))
+            continue;
         if ($values == 'null' || empty($data)) {
             $query .= "null, ";
         } else

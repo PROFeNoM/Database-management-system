@@ -72,7 +72,7 @@ create table EMPRUNTS
 -- ============================================================
 create table ETATS
 (
-    NUMERO_ETAT INT      not null,
+    NUMERO_ETAT INT      not null auto_increment,
     ETAT        CHAR(20) not null,
     constraint PK_ETATS primary key (NUMERO_ETAT)
 );
@@ -82,7 +82,7 @@ create table ETATS
 -- ============================================================
 create table VILLES
 (
-    NUMERO_VILLE INT       not null,
+    NUMERO_VILLE INT       not null auto_increment,
     NOM_VILLE    CHAR(255) not null,
     CODE_POSTAL  INT       not null,
     constraint PK_VILLES primary key (NUMERO_VILLE)
