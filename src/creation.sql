@@ -176,7 +176,7 @@ alter table SEPARER
 -- ============================================================
 
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_STARTING_TERMINAL
     before insert
     on EMPRUNTS
@@ -232,7 +232,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 
 
 create trigger EMPRUNTS_UPDATE_STARTING_TERMINAL
@@ -291,8 +291,7 @@ begin
 end //
 
 
-
-DELIMITER //
+delimiter //
 create trigger VELOS_INSERT_BATTERY_CHECK
     before insert
     on VELOS
@@ -305,7 +304,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger VELOS_UPDATE_BATTERY_CHECK
     before update
     on VELOS
@@ -318,7 +317,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger STATIONS_INSERT_CHECK_BORNES
     before insert
     on STATIONS
@@ -331,7 +330,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger STATIONS_UPDATE_CHECK_BORNES
     before update
     on STATIONS
@@ -344,7 +343,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_CHECK_AVAILABLE
     before insert
     on EMPRUNTS
@@ -362,7 +361,43 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
+create trigger VELOS_UPDATE_CHECK_AVAILABLE
+    before update
+    on VELOS
+    for each row
+begin
+    if (OLD.NUMERO_STATION is null and (select
+                                            E.NUMERO_STATION_ARRIVEE
+                                        from
+                                            EMPRUNTS E
+                                        where
+                                            E.NUMERO_VELO = NEW.NUMERO_VELO
+                                        order by
+                                            cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) desc
+                                        limit 1) is null)
+    then
+        signal sqlstate '45000'
+            set message_text = 'Merci de faire la modification de la station à partir de EMPRUNTS ';
+    end if;
+end //
+
+delimiter //
+create trigger VELOS_UPDATE_CHECK_AVAILABLE2
+    after update
+    on VELOS
+    for each row
+begin
+    if (OLD.NUMERO_STATION is not null and NEW.NUMERO_STATION is null and not exists(
+            select * from EMPRUNTS E where E.NUMERO_VELO = NEW.NUMERO_VELO and E.HEURE_DEPOT is null
+        ))
+    then
+        signal sqlstate '45000'
+            set message_text = 'Merci de faire la modification à partir de EMPRUNTS';
+    end if;
+end //
+
+delimiter //
 create trigger EMPRUNTS_UPDATE_CHECK_AVAILABLE
     before update
     on EMPRUNTS
@@ -381,9 +416,9 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_TAKE_BIKE
-    before insert
+    after insert
     on EMPRUNTS
     for each row
 begin
@@ -393,21 +428,21 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_UPDATE_TAKE_BIKE
-    before update
+    after update
     on EMPRUNTS
     for each row
 begin
-    if (NEW.HEURE_DEPOT is null)
+    if (NEW.HEURE_DEPOT is null and (OLD.HEURE_DEPOT is not null or NEW.NUMERO_VELO != OLD.NUMERO_VELO))
     then
         update VELOS set NUMERO_STATION = null where NUMERO_VELO = NEW.NUMERO_VELO;
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_RELEASE_BIKE
-    before insert
+    after insert
     on EMPRUNTS
     for each row
 begin
@@ -417,9 +452,9 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_UPDATE_RELEASE_BIKE
-    before update
+    after update
     on EMPRUNTS
     for each row
 begin
@@ -429,7 +464,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_CHECK_HOURS
     before insert
     on EMPRUNTS
@@ -443,7 +478,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_UPDATE_CHECK_HOURS
     before update
     on EMPRUNTS
@@ -457,7 +492,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_MATCHING_AVAILABILITY
     before insert
     on EMPRUNTS
@@ -472,7 +507,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_UPDATE_MATCHING_AVAILABILITY
     before update
     on EMPRUNTS
@@ -487,7 +522,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_BETWEEN_TIMES
     before insert
     on EMPRUNTS
@@ -509,7 +544,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_UPDATE_BETWEEN_TIMES
     before update
     on EMPRUNTS
@@ -532,7 +567,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_CHECK_USER_AVAILABILITY
     before insert
     on EMPRUNTS
@@ -555,7 +590,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger STATIONS_UPDATE_BIKE_LIMIT
     before update
     on STATIONS
@@ -568,7 +603,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger VELOS_UPDATE_STATIONS_LIMIT
     before update
     on VELOS
@@ -582,7 +617,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger VELOS_INSERT_STATIONS_LIMIT
     before insert
     on VELOS
@@ -596,7 +631,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger SEPARER_UPDATE_DISTANCE_POSITIVE
     before update
     on SEPARER
@@ -609,7 +644,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger SEPARER_INSERT_DISTANCE_POSITIVE
     before insert
     on SEPARER
@@ -622,7 +657,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_UPDATE_IS_USER_CREATED
     before update
     on EMPRUNTS
@@ -636,7 +671,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_IS_USER_CREATED
     before insert
     on EMPRUNTS
@@ -650,7 +685,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger ADHERENTS_UPDATE_CHECK_DATES
     before update
     on ADHERENTS
@@ -668,7 +703,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger STATIONS_INSERT_CREATE_SEPARER_DISTANCE
     after insert
     on STATIONS
@@ -677,7 +712,7 @@ begin
     insert into SEPARER values (NEW.NUMERO_STATION, NEW.NUMERO_STATION, 0);
 end //
 
-DELIMITER //
+delimiter //
 create trigger SEPARER_UPDATE_SAME_STATION
     before update
     on SEPARER
@@ -690,7 +725,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger SEPARER_DELETE_SAME_STATION
     before delete
     on SEPARER
@@ -703,7 +738,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_DELETE_BIKE_IN_USE
     after delete
     on EMPRUNTS
@@ -715,7 +750,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger ETATS_DELETE_EXISTS_IN_VELOS
     before delete
     on ETATS
@@ -732,7 +767,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger VILLES_DELETE_USED_ADHERENTS
     before delete
     on VILLES
@@ -745,7 +780,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger VILLES_DELETE_USED_STATIONS
     before delete
     on VILLES
@@ -758,7 +793,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_UPDATE_DATES_MISE_EN_SERVICE
     before update
     on EMPRUNTS
@@ -776,7 +811,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger EMPRUNTS_INSERT_DATES_MISE_EN_SERVICE
     before insert
     on EMPRUNTS
@@ -794,7 +829,7 @@ begin
     end if;
 end //
 
-DELIMITER //
+delimiter //
 create trigger VELOS_UPDATE_DATE_MISE_EN_SERVICE
     before update
     on VELOS
@@ -815,10 +850,3 @@ end //
 -- TODO: procedures to prevent duplication between triggers
 -- TODO: There's an issue (can't be solved) with kilometrageVelosParSemaine.sql where km = 0 when a VELOS goes from one STATIONS to the same one
 
--- ============================================================
---   Utilisateur de la base de données
--- ============================================================
-
-create user if not exists 'velo'@'localhost' identified by 'P@ssW0rd';
-grant select, insert, update, delete on VELO.* to 'velo'@'localhost';
-flush privileges;

@@ -1,7 +1,7 @@
 -- ============================================================
 --    suppression des donnees
 -- ============================================================
-use VELO; -- Mayn't be necessary
+-- use VELO; -- Mayn't be necessary
 
 delete from VELOS;
 delete from STATIONS;

@@ -1,5 +1,7 @@
 #!/bin/bash
 
-cat src/base.sql > src.sql
-cat src/donnees.sql >> src.sql
-gnome-terminal -- sudo mysql
+cat src/creation.sql > src.sql
+cat src/create_user.sql >> src.sql
+cat src/suppression.sql >> src.sql
+cat src/peuplement.sql >> src.sql
+gnome-terminal -- sudo mysql -p
