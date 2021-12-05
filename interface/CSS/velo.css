@@ -98,6 +98,10 @@ hr::before {
     background-color: darkgrey;
 }
 
+.reset {
+    background-color: red;
+}
+
 .editButton {
     background-color: darkgrey;
 }

@@ -585,3 +585,33 @@ function deleteRecord(): string
     }
     return $htmlCode;
 }
+
+function resetDb(): string
+{
+    $dbConnection = connectToDb();
+
+    $suppression = file_get_contents(__DIR__ . '/../src/suppression.sql');
+    $peuplement = file_get_contents(__DIR__ . '/../src/peuplement.sql');
+
+    $htmlCode = "";
+
+    $queryResults = mysqli_multi_query($dbConnection, $suppression);
+    while (mysqli_next_result($dbConnection));
+    if ($queryResults)
+        $htmlCode .= "<h3>Suppression avec succès</h3>\n";
+    else {
+        $htmlCode .= "<h3>Erreur lors de la suppression des tables...</h3>\n";
+        $htmlCode .= "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";
+    }
+
+    $queryResults = mysqli_multi_query($dbConnection, $peuplement);
+    while (mysqli_next_result($dbConnection));
+    if ($queryResults)
+        $htmlCode .= "<h3>Peuplement avec succès</h3>\n";
+    else {
+        $htmlCode .= "<h3>Erreur lors du peuplement des tables...</h3>\n";
+        $htmlCode .= "<div class=\"error\"><p>" . mysqli_error($dbConnection) . "</p></div>\n";
+    }
+
+    return $htmlCode;
+}

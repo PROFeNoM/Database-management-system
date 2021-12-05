@@ -23,5 +23,14 @@
 </head>
 
 <body>
-Main page
+<form action="" method="post">
+    <h3>Réinitialiser les données de la base:</h3>
+    <input type="submit" name="resetButton" value="RESET" class="button reset"/>
+</form>
+
+<?php
+if (isset($_POST['resetButton'])) {
+    print resetDb();
+}
+?>
 </body>

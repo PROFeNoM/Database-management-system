@@ -177,19 +177,20 @@ alter table SEPARER
 
 
 delimiter //
-create trigger EMPRUNTS_INSERT_STARTING_TERMINAL
+create trigger EMPRUNTS_INSERT_CHECK_TERMINAL_SUCCESSION
     before insert
     on EMPRUNTS
     for each row
 begin
-    -- If there's a bike before the new record, check if the new record's starting point is ok
+    -- If there's a borrow before the new record, check if the new record's starting point is ok
     if (exists(select *
                from
                    EMPRUNTS E
                where
                      E.NUMERO_VELO = NEW.NUMERO_VELO
                  and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
-                     cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME))
+                     cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                 and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT)
         and (select
                  E.NUMERO_STATION_ARRIVEE
              from
@@ -198,15 +199,16 @@ begin
                    E.NUMERO_VELO = NEW.NUMERO_VELO
                and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
                    cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+               and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
              order by
                  cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) desc
              limit 1) != NEW.NUMERO_STATION_DEPART)
     then
         signal sqlstate '45000'
-            set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
+            set message_text = 'La station de départ du vélo est différente de celle où il est';
     end if;
 
-    -- If there's a bike after the new record, check if the new record's ending point is ok
+    -- If there's a borrow after the new record, check if the new record's ending point is ok
     if (exists(select *
                from
                    EMPRUNTS E
@@ -214,6 +216,7 @@ begin
                      E.NUMERO_VELO = NEW.NUMERO_VELO
                  and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
                      cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                 and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
             )
         and (select
                  E.NUMERO_STATION_DEPART
@@ -223,31 +226,122 @@ begin
                    E.NUMERO_VELO = NEW.NUMERO_VELO
                and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
                    cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+               and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
              order by
                  cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) asc
              limit 1) != NEW.NUMERO_STATION_ARRIVEE)
     then
         signal sqlstate '45000'
+            set message_text = 'La station d\'arrivée du vélo est différente de celle du prochain emprunt';
+    end if;
+end //
+
+delimiter //
+create trigger EMPRUNTS_DELETE_CHECK_TERMINAL_SUCCESSION
+    before delete
+    on EMPRUNTS
+    for each row
+begin
+    -- If there's a borrow before the deleted record, check if the next record's starting point is ok
+    if (exists(select *
+               from
+                   EMPRUNTS E
+               where
+                     E.NUMERO_VELO = OLD.NUMERO_VELO
+                 and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
+                     cast(concat(OLD.DATE_EMPRUNT, ' ', OLD.HEURE_EMPRUNT) as DATETIME)
+                 and OLD.NUMERO_EMPRUNT != E.NUMERO_EMPRUNT)
+        and exists(select *
+                   from
+                       EMPRUNTS E
+                   where
+                         E.NUMERO_VELO = OLD.NUMERO_VELO
+                     and cast(concat(OLD.DATE_EMPRUNT, ' ', OLD.HEURE_EMPRUNT) as DATETIME) <=
+                         cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                     and OLD.NUMERO_EMPRUNT != E.NUMERO_EMPRUNT)
+        and (select
+                 E.NUMERO_STATION_ARRIVEE
+             from
+                 EMPRUNTS E
+             where
+                   E.NUMERO_VELO = OLD.NUMERO_VELO
+               and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
+                   cast(concat(OLD.DATE_EMPRUNT, ' ', OLD.HEURE_EMPRUNT) as DATETIME)
+             order by
+                 cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) desc
+             limit 1) != OLD.NUMERO_STATION_ARRIVEE)
+    then
+        signal sqlstate '45000'
             set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
+    end if;
+
+    -- If there's a borrow after the delete record, check if the record's ending point is ok
+    if (exists(select *
+               from
+                   EMPRUNTS E
+               where
+                     E.NUMERO_VELO = OLD.NUMERO_VELO
+                 and cast(concat(OLD.DATE_EMPRUNT, ' ', OLD.HEURE_EMPRUNT) as DATETIME) <=
+                     cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                 and E.NUMERO_EMPRUNT != OLD.NUMERO_EMPRUNT
+            )
+        and exists(select *
+                   from
+                       EMPRUNTS E
+                   where
+                         E.NUMERO_VELO = OLD.NUMERO_VELO
+                     and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
+                         cast(concat(OLD.DATE_EMPRUNT, ' ', OLD.HEURE_EMPRUNT) as DATETIME)
+                     and E.NUMERO_EMPRUNT != OLD.NUMERO_EMPRUNT
+            )
+        and (select
+                 E.NUMERO_STATION_DEPART
+             from
+                 EMPRUNTS E
+             where
+                   E.NUMERO_VELO = OLD.NUMERO_VELO
+               and cast(concat(OLD.DATE_EMPRUNT, ' ', OLD.HEURE_EMPRUNT) as DATETIME) <=
+                   cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+               and E.NUMERO_EMPRUNT != OLD.NUMERO_EMPRUNT
+             order by
+                 cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) asc
+             limit 1) != OLD.NUMERO_STATION_DEPART)
+    then
+        signal sqlstate '45000'
+            set message_text = 'La succession des stations du vélo serait incohérente.';
+    end if;
+
+    if (not exists(select *
+                   from
+                       EMPRUNTS E
+                   where
+                         E.NUMERO_VELO = OLD.NUMERO_VELO
+                     and cast(concat(OLD.DATE_EMPRUNT, ' ', OLD.HEURE_EMPRUNT) as DATETIME) <=
+                         cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                     and E.NUMERO_EMPRUNT != OLD.NUMERO_EMPRUNT
+        ) and (select V.NUMERO_STATION from VELOS V where V.NUMERO_VELO = OLD.NUMERO_VELO) is not null)
+    then
+        update VELOS set NUMERO_STATION = OLD.NUMERO_STATION_DEPART where VELOS.NUMERO_VELO = OLD.NUMERO_VELO;
     end if;
 end //
 
 delimiter //
 
 
-create trigger EMPRUNTS_UPDATE_STARTING_TERMINAL
+create trigger EMPRUNTS_UPDATE_CHECK_TERMINAL_SUCCESSION
     before update
     on EMPRUNTS
     for each row
 begin
-    -- If there's a bike before the new record, check if the new record's starting point is ok
+    -- If there's a borrow before the new record, check if the new record's starting point is ok
     if (exists(select *
                from
                    EMPRUNTS E
                where
                      E.NUMERO_VELO = NEW.NUMERO_VELO
                  and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
-                     cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME))
+                     cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                 and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT)
         and (select
                  E.NUMERO_STATION_ARRIVEE
              from
@@ -256,15 +350,16 @@ begin
                    E.NUMERO_VELO = NEW.NUMERO_VELO
                and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) <=
                    cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+               and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
              order by
                  cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) desc
              limit 1) != NEW.NUMERO_STATION_DEPART)
     then
         signal sqlstate '45000'
-            set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
+            set message_text = 'La station de départ du vélo est différente de celle où il est';
     end if;
 
-    -- If there's a bike after the new record, check if the new record's ending point is ok
+    -- If there's a borrow after the new record, check if the new record's ending point is ok
     if (exists(select *
                from
                    EMPRUNTS E
@@ -272,6 +367,7 @@ begin
                      E.NUMERO_VELO = NEW.NUMERO_VELO
                  and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
                      cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                 and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
             )
         and (select
                  E.NUMERO_STATION_DEPART
@@ -281,12 +377,13 @@ begin
                    E.NUMERO_VELO = NEW.NUMERO_VELO
                and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
                    cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+               and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
              order by
                  cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) asc
              limit 1) != NEW.NUMERO_STATION_ARRIVEE)
     then
         signal sqlstate '45000'
-            set message_text = 'La station de départ du vélo est différente de celle d\'emprunt';
+            set message_text = 'La station d\'arrivée du vélo est différente de celle du prochain emprunt';
     end if;
 end //
 
@@ -536,7 +633,7 @@ begin
                 and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
                     cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
                 and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
-                    cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                    cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME)
         )
     then
         signal sqlstate '45000'
@@ -559,7 +656,7 @@ begin
                 and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
                     cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
                 and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
-                    cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                    cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME)
         )
     then
         signal sqlstate '45000'
@@ -578,9 +675,9 @@ begin
                   EMPRUNTS E
               where
                     E.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT
-                and E.NUMERO_EMPRUNT != NEW.NUMERO_ADHERENT
-                and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
-                    cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
+                and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
+                and (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
+                     cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) or E.DATE_DEPOT is null)
                 and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
                     cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
         )

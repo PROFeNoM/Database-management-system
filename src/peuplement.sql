@@ -173,7 +173,7 @@ insert into EMPRUNTS values (8, '2020-12-07', '12:56:32', '2020-12-07', '13:23:3
 insert into EMPRUNTS values (9, '2020-12-07', '13:56:32', '2020-12-07', '14:23:34', 2, 2, 9, 8);
 insert into EMPRUNTS values (10, '2020-12-08', '15:56:32', '2020-12-08', '16:23:34', 4, 2, 10, 4);
 insert into EMPRUNTS values (11, '2020-12-08', '13:43:01', '2020-12-08', '13:59:01', 6, 3, 4, 8);
-insert into EMPRUNTS values (12, '2020-12-09', '23:43:01', null, null, 8, 4, 9, null);
+insert into EMPRUNTS values (12, '2020-12-09', '23:43:01', null, null, 8, 7, 9, null);
 insert into EMPRUNTS values (13, '2020-12-10', '14:57:42', '2020-12-10', '15:24:52', 4, 5, 4, 10);
 insert into EMPRUNTS values (14, '2020-12-10', '16:57:42', '2020-12-10', '17:24:52', 1, 5, 9, 1);
 -- week 51
