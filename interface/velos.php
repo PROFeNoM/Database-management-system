@@ -29,7 +29,7 @@
 <h2>Liste des vélos en cours d'utilisation</h2>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/velosEnCoursUtilisation.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/velosEnCoursUtilisation.sql');
 print queryToTable($query);
 ?>
 <!-- END VELOS EN COURS UTILISATION -->
@@ -40,7 +40,7 @@ print queryToTable($query);
 <h2>Kilométrage des vélos</h2>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/kilometrageParVelo.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/kilometrageParVelo.sql');
 print queryToTable($query);
 ?>
 <!-- END KM VELOS -->
@@ -51,7 +51,7 @@ print queryToTable($query);
 <h2>Nombre d’usagers par vélo par jour</h2>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/nombreUsagersVelosParJour.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/nombreUsagersVelosParJour.sql');
 print queryToTable($query);
 ?>
 <!-- END USAGERS VELOS JOUR -->
@@ -61,7 +61,7 @@ print queryToTable($query);
 <h2>Nombre d’usagers par vélo par semaine</h2>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/kilometrageVelosParSemaine.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/kilometrageVelosParSemaine.sql');
 print queryToTable($query);
 ?>
 <!-- END USAGERS VELOS SEMAINE -->
@@ -82,7 +82,7 @@ print queryToTable($query);
 </form>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/velosParStation.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/velosParStation.sql');
 
 if (isset($_POST['stationInput1']) && !empty($_POST['stationInput1'])) {
     print "<p>Vélos à la station " . $_POST['stationInput1'] . "</p>";
@@ -109,7 +109,7 @@ if (isset($_POST['stationInput1']) && !empty($_POST['stationInput1'])) {
 </form>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/classementVelosChargeParStation.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/classementVelosChargeParStation.sql');
 
 if (isset($_POST['stationInput2']) && !empty($_POST['stationInput2'])) {
     print "<p>Classement des stations pour la ville de " . $_POST['stationInput2'] . "</p>";

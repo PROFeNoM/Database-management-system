@@ -40,7 +40,7 @@
 </form>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/adherentsPlus2VelosJourDonnee.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/adherentsPlus2VelosJourDonnee.sql');
 
 if (isset($_POST['dateInput1']) && !empty($_POST['dateInput1'])) {
     print "<p>Adhérents ayant emprunté au moins deux vélos différents le " . $_POST['dateInput1'] . "</p>";

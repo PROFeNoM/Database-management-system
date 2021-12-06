@@ -40,7 +40,7 @@
 </form>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/stationsDansVilleNomVille.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/stationsDansVilleNomVille.sql');
 
 if (isset($_POST['villeInput1']) && !empty($_POST['villeInput1'])) {
     print "<p>Stations à la ville " . $_POST['villeInput1'] . "</p>";
@@ -67,7 +67,7 @@ if (isset($_POST['villeInput1']) && !empty($_POST['villeInput1'])) {
 </form>
 
 <?php
-$query = file_get_contents(__DIR__ . '/../requetes/classementStationPlaceDispoParCommune.sql');
+$query = file_get_contents(__DIR__ . '/../SQL/classementStationPlaceDispoParCommune.sql');
 
 if (isset($_POST['villeInput2']) && !empty($_POST['villeInput2'])) {
     print "<p>Classement des stations pour la ville de " . $_POST['villeInput2'] . "</p>";
