@@ -441,24 +441,6 @@ begin
 end //
 
 delimiter //
-create trigger EMPRUNTS_INSERT_CHECK_AVAILABLE
-    before insert
-    on EMPRUNTS
-    for each row
-begin
-    if exists(select *
-              from
-                  VELOS V
-              where
-                    V.NUMERO_STATION is null
-                and V.NUMERO_VELO = NEW.NUMERO_VELO)
-    then
-        signal sqlstate '45000'
-            set message_text = 'Le vélo sélectionné est en cours d\'utilisation';
-    end if;
-end //
-
-delimiter //
 create trigger VELOS_UPDATE_CHECK_AVAILABLE
     before update
     on VELOS
@@ -495,31 +477,12 @@ begin
 end //
 
 delimiter //
-create trigger EMPRUNTS_UPDATE_CHECK_AVAILABLE
-    before update
-    on EMPRUNTS
-    for each row
-begin
-    if exists(select *
-              from
-                  EMPRUNTS E
-              where
-                    E.HEURE_DEPOT is null
-                and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
-                and E.NUMERO_VELO = NEW.NUMERO_VELO)
-    then
-        signal sqlstate '45000'
-            set message_text = 'Le vélo sélectionné est en cours d\'utilisation';
-    end if;
-end //
-
-delimiter //
 create trigger EMPRUNTS_INSERT_TAKE_BIKE
     after insert
     on EMPRUNTS
     for each row
 begin
-    if (NEW.HEURE_DEPOT is null)
+    if (NEW.HEURE_DEPOT is null and (select NUMERO_STATION from VELOS where NUMERO_VELO = NEW.NUMERO_VELO) is not null)
     then
         update VELOS set NUMERO_STATION = null where NUMERO_VELO = NEW.NUMERO_VELO;
     end if;
@@ -543,7 +506,13 @@ create trigger EMPRUNTS_INSERT_RELEASE_BIKE
     on EMPRUNTS
     for each row
 begin
-    if (NEW.HEURE_DEPOT is not null)
+    if (NEW.HEURE_DEPOT is not null and (select
+                                             NUMERO_EMPRUNT
+                                         from
+                                             EMPRUNTS E
+                                         order by
+                                             cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) desc
+                                         limit 1) = NEW.NUMERO_EMPRUNT)
     then
         update VELOS set NUMERO_STATION = NEW.NUMERO_STATION_ARRIVEE where NUMERO_VELO = NEW.NUMERO_VELO;
     end if;
@@ -555,7 +524,12 @@ create trigger EMPRUNTS_UPDATE_RELEASE_BIKE
     on EMPRUNTS
     for each row
 begin
-    if (NEW.HEURE_DEPOT is not null)
+    if (NEW.HEURE_DEPOT is not null and (select
+                                             NUMERO_EMPRUNT
+                                         from
+                                             EMPRUNTS E
+                                         order by cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) desc
+                                         limit 1) = NEW.NUMERO_EMPRUNT)
     then
         update VELOS set NUMERO_STATION = NEW.NUMERO_STATION_ARRIVEE where NUMERO_VELO = NEW.NUMERO_VELO;
     end if;
@@ -630,10 +604,20 @@ begin
                   EMPRUNTS E
               where
                     NEW.NUMERO_VELO = E.NUMERO_VELO
-                and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
-                    cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
-                and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
-                    cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME)
+                and ((E.HEURE_DEPOT is null and (
+                      (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                           <= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME)
+                          and NEW.HEURE_DEPOT is null)
+                      or
+                      (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                          >= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME))
+                      or
+                      (cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME)
+                          >= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME))
+                  )) or (E.HEURE_DEPOT is not null and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) >=
+                                                       cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                  and (NEW.HEURE_DEPOT is null or cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
+                                                  cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME))))
         )
     then
         signal sqlstate '45000'
@@ -653,10 +637,20 @@ begin
               where
                     NEW.NUMERO_VELO = E.NUMERO_VELO
                 and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
-                and cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
-                    cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME)
-                and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
-                    cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME)
+                and ((E.HEURE_DEPOT is null and (
+                      (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                           <= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME)
+                          and NEW.HEURE_DEPOT is null)
+                      or
+                      (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                          >= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME))
+                      or
+                      (cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME)
+                          >= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME))
+                  )) or (E.HEURE_DEPOT is not null and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) >=
+                                                       cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                  and (NEW.HEURE_DEPOT is null or cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
+                                                  cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME))))
         )
     then
         signal sqlstate '45000'
@@ -675,11 +669,53 @@ begin
                   EMPRUNTS E
               where
                     E.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT
+                and ((E.HEURE_DEPOT is null and (
+                      (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                           <= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME)
+                          and NEW.HEURE_DEPOT is null)
+                      or
+                      (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                          >= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME))
+                      or
+                      (cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME)
+                          >= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME))
+                  )) or (E.HEURE_DEPOT is not null and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) >=
+                                                       cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                  and (NEW.HEURE_DEPOT is null or cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
+                                                  cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME))))
+        )
+    then
+        signal sqlstate '45000'
+            set message_text = 'L\'adhérent sélectionné n\'est pas disponible durant cette période';
+    end if;
+end //
+
+delimiter //
+create trigger EMPRUNTS_UPDATE_CHECK_USER_AVAILABILITY
+    before update
+    on EMPRUNTS
+    for each row
+begin
+    if exists(select *
+              from
+                  EMPRUNTS E
+              where
+                    E.NUMERO_ADHERENT = NEW.NUMERO_ADHERENT
                 and E.NUMERO_EMPRUNT != NEW.NUMERO_EMPRUNT
-                and (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME) <=
-                     cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) or E.DATE_DEPOT is null)
-                and cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
-                    cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                and ((E.HEURE_DEPOT is null and (
+                      (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                           <= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME)
+                          and NEW.HEURE_DEPOT is null)
+                      or
+                      (cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                          >= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME))
+                      or
+                      (cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME)
+                          >= cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME))
+                  )) or (E.HEURE_DEPOT is not null and cast(concat(E.DATE_DEPOT, ' ', E.HEURE_DEPOT) as DATETIME) >=
+                                                       cast(concat(NEW.DATE_EMPRUNT, ' ', NEW.HEURE_EMPRUNT) as DATETIME)
+                  and (NEW.HEURE_DEPOT is null or cast(concat(E.DATE_EMPRUNT, ' ', E.HEURE_EMPRUNT) as DATETIME) <=
+                                                  cast(concat(NEW.DATE_DEPOT, ' ', NEW.HEURE_DEPOT) as DATETIME))))
         )
     then
         signal sqlstate '45000'
