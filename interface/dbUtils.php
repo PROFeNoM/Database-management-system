@@ -343,7 +343,7 @@ function handleForeignKey(string $tableNameSingular, string $columnName = "", $p
             $correspondingForeignFieldName = "NUMERO_STATION";
             break;
         case "VELO":
-            $correspondingForeignFieldName = "REFERENCE";
+            $correspondingForeignFieldName = "NUMERO_VELO";
             break;
         case "ADHERENT":
             $correspondingForeignFieldName = "NUMERO_ADHERENT";
