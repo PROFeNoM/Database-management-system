@@ -206,7 +206,7 @@ from
 union
 select
     count(*),
-    '=20 ?',
+    '=10 ?',
     'STATIONS'
 from
     STATIONS
