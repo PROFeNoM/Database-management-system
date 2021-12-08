@@ -73,6 +73,13 @@ function queryToTable(string $query): string
     return resultsToTable($queryResults);
 }
 
+/**
+ * Get results from a parametrized query
+ * @param string $query Query to execute
+ * @param string $types A string that contains one or more characters which specify the types for the corresponding bind variables
+ * @param ...$params mixed Parameters in the statement
+ * @return mysqli_result|null Results from the query on success, else null
+ */
 function parametrizedQueryResults(string $query, string $types, ...$params): ?mysqli_result
 {
     $dbConnection = connectToDb();
@@ -126,6 +133,11 @@ function columnToSelect(string $columnName, string $tableName): string
         return "No results";
 }
 
+/**
+ * Get primary keys columns name in a table from the database
+ * @param string $tableName Table name in the database from which columns should be retrieved
+ * @return string Whitespace-separated string with the primary key names
+ */
 function getPkColumnsName(string $tableName): string
 {
     $dbConnection = connectToDb();
@@ -148,6 +160,11 @@ function getPkColumnsName(string $tableName): string
     return $pkName;
 }
 
+/**
+ * Get foreign keys columns name in a table from the database
+ * @param string $tableName Table name in the database from which columns should be retrieved
+ * @return string Whitespace-separated string with the foreign key names
+ */
 function getFkColumnsName(string $tableName): string
 {
     $dbConnection = connectToDb();
@@ -586,6 +603,10 @@ function deleteRecord(): string
     return $htmlCode;
 }
 
+/**
+ * Reset database data (do not reset auto_increment counter!)
+ * @return string HTML code representing the success of the operation
+ */
 function resetDb(): string
 {
     $dbConnection = connectToDb();

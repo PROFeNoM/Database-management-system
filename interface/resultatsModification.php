@@ -4,6 +4,7 @@
 <html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
+    <meta charset="utf-8" content="text/html; charset=UTF-8">
     <title>Update Record</title>
     <?php include "dbUtils.php"; ?>
     <h1>
